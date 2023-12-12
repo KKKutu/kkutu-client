@@ -28,10 +28,8 @@ public class Loading extends JFrame {
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                countdownLabel.setText("로딩중... " + timeLeft);
                 timeLeft--;
                 if (timeLeft >= 1) {
-                    System.out.println(countdownLabel.getText());
                     countdownLabel.setText("로딩중... " + timeLeft);
                     countdownLabel.repaint(); // 레이블을 다시 그리기
                 } else {
