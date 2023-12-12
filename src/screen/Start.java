@@ -119,7 +119,12 @@ public class Start extends JFrame {
                 String id = inputId.getText();
                 String pw = new String(inputPw.getPassword());
                 System.out.println("ID: " + id + ", Password: " + pw); // 콘솔에 출력
+
+                // TODO : 로그인이 성공된 상황에서만 수행되어야 할 작업
                 dialog.dispose(); // 다이얼로그 닫기
+                Start.this.setVisible(false); // 현재 Start 프레임을 숨기기
+                Start.this.dispose(); // 현재 Start 프레임을 닫기
+                new Loading(); // Loading 화면 띄우기
             }
         };
         loginBtn.addActionListener(confirmAction);
