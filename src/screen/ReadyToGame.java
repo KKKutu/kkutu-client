@@ -2,7 +2,10 @@ package screen;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.util.Objects;
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 public class ReadyToGame extends JFrame {
@@ -16,6 +19,10 @@ public class ReadyToGame extends JFrame {
     private JPanel roomsPanel;
 
     public ReadyToGame() {
+        setScreen();
+    }
+
+    public void setScreen() {
         setTitle("Ready to Game");
         setSize(1000, 600);
         setResizable(false);
@@ -24,10 +31,24 @@ public class ReadyToGame extends JFrame {
         getContentPane().setBackground(Color.WHITE);
 
         // 네 개의 패널
-        menuPanel = addPanel(0, 0, 1000, 50, Color.YELLOW);
+        menuPanel = addPanel(0, 0, 1000, 50, Color.decode("#F7F7F7"));
         peoplePanel = addPanel(0, 52, 276, 309, Color.BLACK);
         profilePanel = addPanel(0, 363, 276, 237, Color.RED);
         roomsPanel = addPanel(278, 52, 724, 546, Color.BLUE);
+
+        // 메뉴 부착
+        // 이미지 라벨 추가
+        JLabel informationLabel = createImageLabel("../image/readytogame/information.png", 0, 0, 50, 50);
+        menuPanel.add(informationLabel);
+
+        JLabel settingLabel = createImageLabel("../image/readytogame/setting.png", 50, 0, 50, 50);
+        menuPanel.add(settingLabel);
+
+        JLabel changeProfileLabel = createImageLabel("../image/readytogame/change_profile.png", 100, 0, 163, 50);
+        menuPanel.add(changeProfileLabel);
+
+        JLabel makeRoomLabel = createImageLabel("../image/readytogame/make_room.png", 263, 0, 163, 50);
+        menuPanel.add(makeRoomLabel);
 
         // 선 그리기
         addLinePanel();
@@ -64,6 +85,23 @@ public class ReadyToGame extends JFrame {
             g.fillRect(10, 361, 256, 2);
             g.fillRect(276, 59, 2, 530);
         }
+    }
+
+    // 이미지 아이콘 로딩
+    private ImageIcon loadIcon(String path) {
+        return new ImageIcon(
+                Objects.requireNonNull(getClass().getResource(path))
+        );
+    }
+
+    // 이미지를 라벨로
+    private JLabel createImageLabel(String imagePath, int x, int y, int width, int height) {
+        JLabel imgLabel = new JLabel();
+        ImageIcon icon = loadIcon(imagePath);
+        imgLabel.setIcon(icon);
+        imgLabel.setBounds(x, y, width, height);
+        imgLabel.setHorizontalAlignment(JLabel.CENTER);
+        return imgLabel;
     }
 
 }
