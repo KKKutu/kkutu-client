@@ -16,12 +16,40 @@ import javax.swing.JLabel;
 
 public class Start extends JFrame {
 
+    private static final int WINDOW_WIDTH = 1000;
+    private static final int WINDOW_HEIGHT = 600;
     private static final Color BUTTON_BG_COLOR = Color.decode("#FFFFFF");
     private static final Font BUTTON_FONT = new Font("Dialog", Font.BOLD, 20);
 
     // 생성자에서 UI 설정
     public Start() {
         setScreen();
+    }
+
+    // UI 설정
+    public void setScreen() {
+        setWindow(); // 화면 기본 구성
+        addComponents(); // 필요한 요소들 부착
+        setVisible(true); // 해당 프레임 보이게
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // 화면 닫으면 프로그램 종료
+    }
+
+    // 화면 기본 구성
+    private void setWindow() {
+        setTitle("Ready to Game");
+        setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+        setResizable(false);
+        setLocationRelativeTo(null);
+        setLayout(null);
+        getContentPane().setBackground(Color.WHITE);
+    }
+
+    // 필요한 요소들 부착
+    private void addComponents() {
+        add(createLogo()); // 상위 끄투 로고
+        add(createKkutuBg()); // 가운데 끄투 배경 이미지
+        add(createLoginBtn()); // 로그인 버튼
+        add(createSignupBtn()); // 회원가입 버튼
     }
 
     // 이미지 아이콘 로딩
@@ -130,8 +158,7 @@ public class Start extends JFrame {
         loginBtn.addActionListener(confirmAction);
         inputPw.addActionListener(confirmAction); // 엔터 키에도 동일한 액션 리스너 적용
 
-        dialog.add(loginBtn); // Add confirm button to dialog
-
+        dialog.add(loginBtn);
         dialog.setVisible(true); // 다이얼로그 보이기
     }
 
@@ -193,26 +220,8 @@ public class Start extends JFrame {
         signupBtn.addActionListener(confirmAction);
         inputPw.addActionListener(confirmAction); // 엔터 키에도 동일한 액션 리스너 적용
 
-        dialog.add(signupBtn); // Add signupBtn button to dialog
-
+        dialog.add(signupBtn);
         dialog.setVisible(true); // 다이얼로그 보이기
     }
 
-    // UI 세팅
-    public void setScreen() {
-        setTitle("KKutu");
-        setSize(1000,600);
-        setResizable(false);
-        setLocationRelativeTo(null);
-        setLayout(null);
-        getContentPane().setBackground(Color.WHITE);
-
-        add(createLogo()); // 상위 끄투 로고
-        add(createKkutuBg()); // 가운데 끄투 배경 이미지
-        add(createLoginBtn()); // 로그인 버튼
-        add(createSignupBtn()); // 회원가입 버튼
-
-        setVisible(true);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    }
 }

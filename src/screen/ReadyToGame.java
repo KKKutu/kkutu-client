@@ -29,18 +29,19 @@ public class ReadyToGame extends JFrame {
     private JPanel profilePanel;
     private JPanel roomsPanel;
 
+    // 생성자에서 UI 설정
     public ReadyToGame() {
         setScreen();
     }
 
+    // UI 설정
     public void setScreen() {
         setWindow(); // 화면 기본 구성
         addPanels(); // 네 개의 패널 부착
         addLinePanel(); // 패널 구분선 그리기
         addMenuContents(); // 메뉴 패널의 내용 채우기
-
-        setVisible(true);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setVisible(true); // 해당 프레임 보이게
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // 화면 닫으면 프로그램 종료
     }
 
     // 화면 기본 구성

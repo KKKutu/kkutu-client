@@ -14,10 +14,37 @@ import javax.swing.Timer;
 public class Loading extends JFrame {
 
     private JLabel countdownLabel;
+    private static final int WINDOW_WIDTH = 1000;
+    private static final int WINDOW_HEIGHT = 600;
 
+    // 생성자에서 UI 설정
     public Loading() {
         setScreen();
         startCountdown(countdownLabel);
+    }
+
+    // UI 설정
+    public void setScreen() {
+        setWindow(); // 화면 기본 구성
+        addPanels(); // 두 개의 패널 부착
+        setVisible(true); // 해당 프레임 보이게
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // 화면 닫으면 프로그램 종료
+    }
+
+    // 화면 기본 구성
+    private void setWindow() {
+        setTitle("Loading..");
+        setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+        setResizable(false);
+        setLocationRelativeTo(null);
+        setLayout(null);
+        getContentPane().setBackground(Color.WHITE);
+    }
+
+    // 두 개의 패널 부착
+    private void addPanels() {
+        add(createBackground()); // 배경
+        add(createCountdownLabel()); // 카운트 다운 텍스트 라벨
     }
 
     // 로딩 화면을 위한 카운트다운 시작
@@ -34,7 +61,7 @@ public class Loading extends JFrame {
                     countdownLabel.repaint(); // 레이블을 다시 그리기
                 } else {
                     ((Timer) e.getSource()).stop();
-                    openReadyToGameScreen();
+                    openReadyToGameScreen(); // 3초 지나면 ReadyToGame 화면 열기
                 }
             }
         });
@@ -52,7 +79,6 @@ public class Loading extends JFrame {
     public JLabel createBackground() {
         return createImageLabel("../image/loading/loading.png", 0, 0, 1000, 600); // 적절한 너비와 높이 지정
     }
-
 
     // 이미지 아이콘 로딩
     private ImageIcon loadIcon(String path) {
@@ -83,19 +109,6 @@ public class Loading extends JFrame {
         // 위치와 크기를 동시에 설정
         countdownLabel.setBounds(449, 345, 113, 30); // 위치: 444, 360, 너비: 100, 높이: 50
         return countdownLabel;
-    }
-
-    public void setScreen() {
-        setTitle("Loading..");
-        setSize(1000, 600);
-        setResizable(false);
-        setLocationRelativeTo(null);
-        setLayout(null);
-        add(createBackground()); // 배경
-        add(createCountdownLabel());
-
-        setVisible(true);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 
 }
