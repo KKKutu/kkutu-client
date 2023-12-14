@@ -1,23 +1,28 @@
 package screen;
 
 import static component.RoundedMenu.createRoundedPanel;
+
+import component.RoundedTitle;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Objects;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 
 public class ReadyToGame extends JFrame {
 
     private static final Color LINE_COLOR = Color.decode("#DCDCDC");
     private static final Color MENU_PANEL_COLOR = Color.decode("#F7F7F7");
-    private static final Color PEOPLE_PANEL_COLOR = Color.BLACK;
+    private static final Color PEOPLE_PANEL_COLOR = Color.decode("#F7F7F7");
     private static final Color PROFILE_PANEL_COLOR = Color.RED;
     private static final Color ROOMS_PANEL_COLOR = Color.GRAY;
 
@@ -40,6 +45,7 @@ public class ReadyToGame extends JFrame {
         addPanels(); // 네 개의 패널 부착
         addLinePanel(); // 패널 구분선 그리기
         addMenuContents(); // 메뉴 패널의 내용 채우기
+        addPeopleContents(); // 접속자 패널의 내용 채우기
         setVisible(true); // 해당 프레임 보이게
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // 화면 닫으면 프로그램 종료
     }
@@ -136,6 +142,64 @@ public class ReadyToGame extends JFrame {
         });
     }
 
+    // 접속자 패널에 해당하는 콘텐츠 내용 채우기
+    private void addPeopleContents() {
+        addGreyRectanglePanel();
+        addScrollPane();
+    }
+
+    // 회색 직사각형 패널 추가 함수
+    private void addGreyRectanglePanel() {
+        Color greyPanelColor = Color.decode("#DDDDDD");
+        int greyPanelWidth = 256;
+        int greyPanelHeight = 40;
+        int greyPanelX = 10;
+        int greyPanelY = 10;
+        JPanel greyPanel = RoundedTitle.createRoundedPanel(greyPanelX, greyPanelY, greyPanelWidth, greyPanelHeight, greyPanelColor, 15);
+        greyPanel.setLayout(null);
+
+        // 이미지 라벨 생성 및 추가
+        JLabel imageLabel = createImageLabel("../image/readytogame/address.png", 10, 8, 24, 24);
+        greyPanel.add(imageLabel);
+
+        // 텍스트 레이블 추가
+        JLabel textLabel = new JLabel("접속자 목록 [15명]"); // TODO : 여기 서버한테 받아와야 함
+        textLabel.setBounds(40, 8, 200, 24); // 위치와 크기 설정 (이미지 옆)
+        textLabel.setForeground(Color.BLACK);
+        textLabel.setFont(new Font("Dialog", Font.PLAIN, 15));
+
+        greyPanel.add(textLabel);
+        peoplePanel.add(greyPanel);
+    }
+
+    // 스크롤팬 추가 함수
+    private void addScrollPane() {
+        int greyPanelWidth = 256;
+        int greyPanelHeight = 40;
+        int greyPanelX = 10;
+        int greyPanelY = 10;
+
+        JScrollPane scrollPane = new JScrollPane();
+        scrollPane.setBounds(greyPanelX + 10, greyPanelY + greyPanelHeight + 10, greyPanelWidth - 10, 225);
+        scrollPane.setBorder(null);
+        scrollPane.getViewport().setBackground(Color.decode("#F7F7F7"));
+
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setBackground(Color.decode("#F7F7F7"));
+
+        // TODO : 여기 서버한테 받아와야 함 (배열로 저장해서 출력하기)
+        for (int i = 0; i < 15; i++) {
+            JLabel label = new JLabel("Item " + (i + 1));
+            label.setForeground(Color.BLACK);
+            label.setFont(new Font("Dialog", Font.PLAIN, 15));
+            contentPanel.add(label);
+        }
+
+        scrollPane.setViewportView(contentPanel);
+        peoplePanel.add(scrollPane);
+    }
+
     // 선을 그리기 위한 패널 추가
     private void addLinePanel() {
         JPanel linePanel = new LinePanel();
@@ -203,7 +267,7 @@ public class ReadyToGame extends JFrame {
         dialog.setSize(600, 350); // 다이얼로그 크기 설정
         dialog.setResizable(false);
         dialog.setLocationRelativeTo(null); // 화면 중앙에 위치
-
         dialog.setVisible(true); // 다이얼로그 보이기
     }
+
 }
