@@ -6,7 +6,6 @@ import component.RoundedTitle;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.Image;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Objects;
@@ -17,6 +16,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.border.EmptyBorder;
 
 public class ReadyToGame extends JFrame {
 
@@ -24,7 +24,7 @@ public class ReadyToGame extends JFrame {
     private static final Color MENU_PANEL_COLOR = Color.decode("#F7F7F7");
     private static final Color PEOPLE_PANEL_COLOR = Color.decode("#F7F7F7");
     private static final Color PROFILE_PANEL_COLOR = Color.decode("#F7F7F7");
-    private static final Color ROOMS_PANEL_COLOR = Color.GRAY;
+    private static final Color ROOMS_PANEL_COLOR = Color.decode("#F7F7F7");
 
     private static final int WINDOW_WIDTH = 1000;
     private static final int WINDOW_HEIGHT = 600;
@@ -47,6 +47,7 @@ public class ReadyToGame extends JFrame {
         addMenuContents(); // 메뉴 패널의 내용 채우기
         addPeopleContents(); // 접속자 패널의 내용 채우기
         addProfileContents(); // 내 프로필 패널의 내용 채우기
+        addRoomsContents(); // 방 정보 패널의 내용 채우기
         setVisible(true); // 해당 프레임 보이게
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // 화면 닫으면 프로그램 종료
     }
@@ -146,9 +147,16 @@ public class ReadyToGame extends JFrame {
     // 접속자 패널에 해당하는 콘텐츠 내용 채우기
     private void addPeopleContents() {
         addPeopleListTitle();
-        addScrollPane();
+        addPeopleListScrollPane();
     }
 
+    // 방 정보 패널에 해당하는 콘텐츠 내용 채우기
+    private void addRoomsContents() {
+        addRoomListTitle();
+        addRoomListScrollPane();
+    }
+
+    // 내 프로필 패널에 해당하는 콘텐츠 내용 채우기
     private void addProfileContents() {
         addProfileTitle();
         addId();
@@ -203,15 +211,39 @@ public class ReadyToGame extends JFrame {
         profilePanel.add(greyPanel);
     }
 
-    // 스크롤팬 추가 함수
-    private void addScrollPane() {
-        int greyPanelWidth = 256;
+    // 방 목록 타이틀
+    private void addRoomListTitle() {
+        Color greyPanelColor = Color.decode("#DDDDDD");
+        int greyPanelWidth = 700;
         int greyPanelHeight = 40;
         int greyPanelX = 10;
         int greyPanelY = 10;
+        JPanel greyPanel = RoundedTitle.createRoundedPanel(greyPanelX, greyPanelY, greyPanelWidth, greyPanelHeight, greyPanelColor, 15);
+        greyPanel.setLayout(null);
+
+        // 이미지 라벨 생성 및 추가
+        JLabel imageLabel = createImageLabel("../image/readytogame/list.png", 10, 8, 24, 24);
+        greyPanel.add(imageLabel);
+
+        // 텍스트 레이블 추가
+        JLabel textLabel = new JLabel("방 목록 [34개]"); // TODO : 여기 서버한테 받아와야 함
+        textLabel.setBounds(40, 8, 200, 24); // 위치와 크기 설정 (이미지 옆)
+        textLabel.setForeground(Color.BLACK);
+        textLabel.setFont(new Font("Dialog", Font.PLAIN, 15));
+
+        greyPanel.add(textLabel);
+        roomsPanel.add(greyPanel);
+    }
+
+    // 접속자 리스트 스크롤팬 추가
+    private void addPeopleListScrollPane() {
+        int panelWidth = 256;
+        int panelHeight = 40;
+        int panelX = 10;
+        int panelY = 10;
 
         JScrollPane scrollPane = new JScrollPane();
-        scrollPane.setBounds(greyPanelX + 10, greyPanelY + greyPanelHeight + 10, greyPanelWidth - 10, 225);
+        scrollPane.setBounds(panelX + 10, panelY + panelHeight + 10, panelWidth - 10, 225);
         scrollPane.setBorder(null);
         scrollPane.getViewport().setBackground(Color.decode("#F7F7F7"));
 
@@ -229,6 +261,48 @@ public class ReadyToGame extends JFrame {
 
         scrollPane.setViewportView(contentPanel);
         peoplePanel.add(scrollPane);
+    }
+
+    // 방 정보 스크롤팬 추가
+    private void addRoomListScrollPane() {
+        int panelWidth = 700;
+        int panelHeight = 40;
+        int panelX = 10;
+        int panelY = 10;
+
+        JScrollPane scrollPane = new JScrollPane();
+        scrollPane.setBounds(panelX + 10, panelY + panelHeight + 10, panelWidth - 10, 440);
+        scrollPane.setBorder(null);
+        scrollPane.getViewport().setBackground(Color.decode("#F7F7F7"));
+
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setBackground(Color.decode("#F7F7F7"));
+
+        String waitRoomImagePath = "../image/room/wait_room.png";
+        String playRoomImagePath = "../image/room/play_room.png";
+
+        // 20개의 각 이미지를 추가
+        for (int i = 0; i < 20; i++) {
+            JPanel rowPanel = new JPanel();
+            rowPanel.setLayout(new BoxLayout(rowPanel, BoxLayout.X_AXIS));
+            rowPanel.setBackground(Color.decode("#F7F7F7"));
+
+            // Wait room 이미지 추가
+            JLabel waitRoomLabel = createImageLabel(waitRoomImagePath, 0, 0, -1, -1);
+            waitRoomLabel.setBorder(new EmptyBorder(10, 5, 10, 5)); // 상, 좌, 하, 우 여백
+            rowPanel.add(waitRoomLabel);
+
+            // Play room 이미지 추가
+            JLabel playRoomLabel = createImageLabel(playRoomImagePath, 0, 0, -1, -1);
+            playRoomLabel.setBorder(new EmptyBorder(10, 5, 10, 5)); // 상, 좌, 하, 우 여백
+            rowPanel.add(playRoomLabel);
+
+            contentPanel.add(rowPanel);
+        }
+
+        scrollPane.setViewportView(contentPanel);
+        roomsPanel.add(scrollPane);
     }
 
     // 아이디 보여주기
