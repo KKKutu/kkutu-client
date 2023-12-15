@@ -6,10 +6,10 @@ import component.RoundedTitle;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Image;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Objects;
-import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JDialog;
@@ -23,7 +23,7 @@ public class ReadyToGame extends JFrame {
     private static final Color LINE_COLOR = Color.decode("#DCDCDC");
     private static final Color MENU_PANEL_COLOR = Color.decode("#F7F7F7");
     private static final Color PEOPLE_PANEL_COLOR = Color.decode("#F7F7F7");
-    private static final Color PROFILE_PANEL_COLOR = Color.RED;
+    private static final Color PROFILE_PANEL_COLOR = Color.decode("#F7F7F7");
     private static final Color ROOMS_PANEL_COLOR = Color.GRAY;
 
     private static final int WINDOW_WIDTH = 1000;
@@ -46,6 +46,7 @@ public class ReadyToGame extends JFrame {
         addLinePanel(); // 패널 구분선 그리기
         addMenuContents(); // 메뉴 패널의 내용 채우기
         addPeopleContents(); // 접속자 패널의 내용 채우기
+        addProfileContents(); // 내 프로필 패널의 내용 채우기
         setVisible(true); // 해당 프레임 보이게
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // 화면 닫으면 프로그램 종료
     }
@@ -57,7 +58,7 @@ public class ReadyToGame extends JFrame {
         setResizable(false);
         setLocationRelativeTo(null);
         setLayout(null);
-        getContentPane().setBackground(Color.WHITE);
+        getContentPane().setBackground(Color.decode("#F7F7F7"));
     }
 
     // 네 개의 패널
@@ -144,12 +145,18 @@ public class ReadyToGame extends JFrame {
 
     // 접속자 패널에 해당하는 콘텐츠 내용 채우기
     private void addPeopleContents() {
-        addGreyRectanglePanel();
+        addPeopleListTitle();
         addScrollPane();
     }
 
-    // 회색 직사각형 패널 추가 함수
-    private void addGreyRectanglePanel() {
+    private void addProfileContents() {
+        addProfileTitle();
+        addId();
+        addProfileImg();
+    }
+
+    // 접속자 목록 타이틀
+    private void addPeopleListTitle() {
         Color greyPanelColor = Color.decode("#DDDDDD");
         int greyPanelWidth = 256;
         int greyPanelHeight = 40;
@@ -170,6 +177,30 @@ public class ReadyToGame extends JFrame {
 
         greyPanel.add(textLabel);
         peoplePanel.add(greyPanel);
+    }
+
+    // 내 프로필 타이틀
+    private void addProfileTitle() {
+        Color greyPanelColor = Color.decode("#DDDDDD");
+        int greyPanelWidth = 256;
+        int greyPanelHeight = 40;
+        int greyPanelX = 10;
+        int greyPanelY = 10;
+        JPanel greyPanel = RoundedTitle.createRoundedPanel(greyPanelX, greyPanelY, greyPanelWidth, greyPanelHeight, greyPanelColor, 15);
+        greyPanel.setLayout(null);
+
+        // 이미지 라벨 생성 및 추가
+        JLabel imageLabel = createImageLabel("../image/readytogame/user.png", 10, 8, 24, 24);
+        greyPanel.add(imageLabel);
+
+        // 텍스트 레이블 추가
+        JLabel textLabel = new JLabel("내 정보");
+        textLabel.setBounds(40, 8, 200, 24); // 위치와 크기 설정 (이미지 옆)
+        textLabel.setForeground(Color.BLACK);
+        textLabel.setFont(new Font("Dialog", Font.PLAIN, 15));
+
+        greyPanel.add(textLabel);
+        profilePanel.add(greyPanel);
     }
 
     // 스크롤팬 추가 함수
@@ -198,6 +229,39 @@ public class ReadyToGame extends JFrame {
 
         scrollPane.setViewportView(contentPanel);
         peoplePanel.add(scrollPane);
+    }
+
+    // 아이디 보여주기
+    private void addId() {
+        String userName = "가자미가자미가자미"; // TODO : 서버에서 받아오거나 여기서(클라이언트 프로프램에서) 사용자 정보를 저장하는 클래스에서 가져오기
+        int fontSize = 15;
+        JLabel idLabel = createTextLabel(userName, fontSize);
+
+        // 라벨의 x 위치를 중앙 정렬을 위해 계산
+        int labelWidth = idLabel.getPreferredSize().width;
+        int xPosition = (profilePanel.getWidth() - labelWidth) / 2;
+
+        // 프로필 제목 아래에 라벨 위치 설정
+        int yPosition = 70;
+
+        idLabel.setBounds(xPosition, yPosition, labelWidth, idLabel.getPreferredSize().height);
+        profilePanel.add(idLabel);
+    }
+
+    // 프로필 이미지 보여주기
+    private void addProfileImg() {
+        String imagePath = "../image/profile/1.png";
+        JLabel idLabel = (JLabel) profilePanel.getComponent(profilePanel.getComponentCount() - 1); // 마지막에 추가된 컴포넌트(여기서는 idLabel)를 가져옴
+
+        // 이미지의 x 위치와 y 위치 계산
+        ImageIcon tempIcon = loadIcon(imagePath);
+        int width = tempIcon.getIconWidth();
+        int height = tempIcon.getIconHeight();
+        int xPosition = (profilePanel.getWidth() - width) / 2;
+        int yPosition = idLabel.getY() + idLabel.getHeight() + 20; // 이름 라벨 아래 30픽셀
+
+        JLabel imgLabel = createImageLabel(imagePath, xPosition, yPosition, width, height);
+        profilePanel.add(imgLabel);
     }
 
     // 선을 그리기 위한 패널 추가
