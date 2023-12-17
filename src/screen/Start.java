@@ -173,6 +173,25 @@ public class Start extends JFrame {
                 String pw = new String(inputPw.getPassword());
                 System.out.println("ID: " + id + ", Password: " + pw); // 콘솔에 출력
 
+                try {
+                    output.writeUTF("ACTION=SignIn&USERNAME="+id+"&PASSWORD="+pw);
+                    output.flush();
+
+                    String signUpRes = input.readUTF();
+                    if(signUpRes.contains("SignIn")){
+                        if(signUpRes.contains("OK")){
+                            dialog.dispose(); // 다이얼로그 닫기
+                            System.out.println("로그인 성공");
+                        } else {
+                            inputId.setText("");
+                            inputPw.setText("");
+                            System.out.println("로그인 실패");
+                        }
+                    }
+
+                } catch (IOException io){
+                    System.out.println(io.getMessage());
+                }
                 // TODO : 로그인이 성공된 상황에서만 수행되어야 할 작업
                 dialog.dispose(); // 다이얼로그 닫기
                 Start.this.setVisible(false); // 현재 Start 프레임을 숨기기
@@ -264,18 +283,21 @@ public class Start extends JFrame {
                 try {
                     output.writeUTF("ACTION=SignUp&USERNAME="+id+"&PASSWORD="+pw);
                     output.flush();
-                    String result = input.readUTF().split("&")[1].split("=")[1];
 
-                    if(result.equals("OK")){
-                        dialog.dispose(); // 다이얼로그 닫기
-                        System.out.println("회원가입 성공");
-                    } else {
-                        inputId.setText("");
-                        inputPw.setText("");
-                        System.out.println("회원가입 실패");
+                    String signUpRes = input.readUTF();
+                    if(signUpRes.contains("SignUp")){
+                        if(signUpRes.contains("OK")){
+                            dialog.dispose(); // 다이얼로그 닫기
+                            System.out.println("회원가입 성공");
+                        } else {
+                            inputId.setText("");
+                            inputPw.setText("");
+                            System.out.println("회원가입 실패");
+                        }
                     }
+
                 } catch (IOException io){
-                    System.out.println("Error");
+                    System.out.println(io.getMessage());
                 }
 
             }
