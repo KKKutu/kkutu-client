@@ -5,6 +5,6 @@ import screen.Start;
 public class Main extends JFrame {
 
     public static void main(String[] args){
-        new ReadyToGame();
+        new Start();
     }
 }
