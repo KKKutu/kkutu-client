@@ -26,6 +26,7 @@ public class Start extends JFrame {
     private DataInputStream input;
 
     private Socket socket;
+
     private static final int WINDOW_WIDTH = 1000;
     private static final int WINDOW_HEIGHT = 600;
     private static final Color BUTTON_BG_COLOR = Color.decode("#FFFFFF");
@@ -34,7 +35,9 @@ public class Start extends JFrame {
     // 생성자에서 UI 설정
     public Start() {
         try {
+
             socket = new Socket(serverAddress, serverPort);
+
             output = new DataOutputStream(socket.getOutputStream());
             input = new DataInputStream(socket.getInputStream());
             output.writeUTF("접속 시도");
@@ -262,7 +265,7 @@ public class Start extends JFrame {
                     output.writeUTF("ACTION=SignUp&USERNAME="+id+"&PASSWORD="+pw);
                     output.flush();
                     String result = input.readUTF().split("&")[1].split("=")[1];
-                    System.out.println(result);
+
                     if(result.equals("OK")){
                         dialog.dispose(); // 다이얼로그 닫기
                         System.out.println("회원가입 성공");

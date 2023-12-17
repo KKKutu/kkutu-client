@@ -2,10 +2,13 @@ package screen;
 
 import static component.RoundedMenu.createRoundedPanel;
 
+import component.RoundedButton;
 import component.RoundedTitle;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.*;
@@ -218,7 +221,7 @@ public class ReadyToGame extends JFrame {
             @Override
             public void mouseClicked(MouseEvent e) {
                 System.out.println("게임 환경 설정 다이얼로그 보여주기");
-//                showSettingDialog();
+                showSettingDialog();
             }
         });
 
@@ -506,6 +509,76 @@ public class ReadyToGame extends JFrame {
         JLabel label = new JLabel(text);
         label.setFont(new Font("Dialog", Font.PLAIN, fontSize));
         return label;
+    }
+
+    // 설정 다이얼로그 표시 메서드
+    private void showSettingDialog() {
+        JDialog dialog = new JDialog(this, "설정", true); // true로 설정하여 모달로 만듦
+        dialog.setLayout(null);
+        dialog.setTitle("설정");
+        dialog.setSize(300, 220); // 다이얼로그 크기 설정
+        dialog.setResizable(false);
+        dialog.setLocationRelativeTo(null); // 화면 중앙에 위치
+
+        // 텍스트 라벨 생성 및 설정
+        JLabel backgroundText = new JLabel("배경음악 조절");
+        backgroundText.setBounds(20, 26, 100, 20);
+        backgroundText.setFont(new Font("Dialog", Font.PLAIN, 12));
+
+        JLabel effectText = new JLabel("효과음 조절");
+        effectText.setBounds(26, 61, 100, 20);
+        effectText.setFont(new Font("Dialog", Font.PLAIN, 12));
+
+        JLabel backgroundSelectText = new JLabel("배경음악 선택");
+        backgroundSelectText.setBounds(21, 96, 100, 20);
+        backgroundSelectText.setFont(new Font("Dialog", Font.PLAIN, 12));
+
+        // 슬라이더 추가
+        JSlider backgroundSlider = new JSlider(0, 100, 50); // TODO : 서버로부터 저장된 값 받아오기
+        backgroundSlider.setBounds(120, 26, 150, 20);
+
+        JSlider effectSlider = new JSlider(0, 100, 50); // TODO : 서버로부터 저장된 값 받아오기
+        effectSlider.setBounds(120, 61, 150, 20);
+
+        // 셀렉트 박스 추가 // TODO : 서버로부터 저장된 값 받아오기
+        String[] musicChoices = {"기본", "크리스마스"};
+        JComboBox<String> musicSelectBox = new JComboBox<>(musicChoices);
+        musicSelectBox.setBounds(120, 98, 150, 20);
+
+        // 저장 버튼
+        RoundedButton saveBtn = new RoundedButton("저장", 30); // 두 번째 매개변수는 round 정도
+        saveBtn.setBounds(110, 145, 80, 28); // x 좌표, y 좌표, 너비, 높이
+        saveBtn.setBackground(Color.decode("#EEEEEE")); // 버튼 배경 색
+        saveBtn.setFont(new Font("Dialog", Font.PLAIN, 12)); // 폰트 지정
+
+        // 구성 요소 다이얼로그에 추가
+        dialog.add(backgroundText);
+        dialog.add(effectText);
+        dialog.add(backgroundSelectText);
+        dialog.add(backgroundSlider);
+        dialog.add(effectSlider);
+        dialog.add(musicSelectBox);
+        dialog.add(saveBtn);
+
+        // 액션 리스너 추가
+        saveBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // 슬라이더와 콤보박스의 값을 출력
+                int backgroundMusicValue = backgroundSlider.getValue();
+                int effectSoundValue = effectSlider.getValue();
+                String selectedMusic = (String) musicSelectBox.getSelectedItem();
+
+                System.out.println("배경음악 조절: " + backgroundMusicValue);
+                System.out.println("효과음 조절: " + effectSoundValue);
+                System.out.println("선택된 배경음악: " + selectedMusic);
+
+                // 다이얼로그 닫기
+                dialog.dispose();
+            }
+        });
+
+        dialog.setVisible(true); // 다이얼로그 보이기
     }
 
     // 프로필 변경 다이얼로그 표시 메서드
