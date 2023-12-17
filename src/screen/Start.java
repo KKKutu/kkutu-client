@@ -7,6 +7,10 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.Socket;
 import java.util.Objects;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -16,6 +20,10 @@ import javax.swing.JLabel;
 
 public class Start extends JFrame {
 
+    private static final String serverAddress = "localhost";
+    private static final int serverPort = 9999;
+    private DataOutputStream output;
+    private DataInputStream input;
     private static final int WINDOW_WIDTH = 1000;
     private static final int WINDOW_HEIGHT = 600;
     private static final Color BUTTON_BG_COLOR = Color.decode("#FFFFFF");
@@ -23,7 +31,19 @@ public class Start extends JFrame {
 
     // 생성자에서 UI 설정
     public Start() {
-        setScreen();
+        try {
+            Socket socket = new Socket(serverAddress, serverPort);
+            output = new DataOutputStream(socket.getOutputStream());
+            input = new DataInputStream(socket.getInputStream());
+            output.writeUTF("접속 시도");
+            setScreen();
+//            new Thread(this::Start).start();
+
+            output.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
     }
 
     // UI 설정
@@ -188,6 +208,28 @@ public class Start extends JFrame {
         checkIdBtn.setBounds(208, 21, 74, 25); // x 좌표, y 좌표, 너비, 높이
         checkIdBtn.setBackground(Color.decode("#EEEEEE")); // 버튼 배경 색
         checkIdBtn.setFont(new Font("Dialog", Font.PLAIN, 8)); // 폰트 지정
+        checkIdBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String id = inputId.getText();
+                System.out.println("ID: " + id); // 콘솔에 출력
+                try {
+                    output.writeUTF("ACTION=FindName&USERNAME="+id);
+                    output.flush();
+                    String result = input.readUTF().split("&")[1].split("=")[1];
+
+                    // NO인 경우 중복되지 않음
+                    if(result.equals("NO")){
+                        System.out.println("중복 X");
+                    } else {
+                        inputId.setText("");
+                        System.out.println("중복 O");
+                    }
+                } catch (IOException io){
+                    System.out.println("Error");
+                }
+            }
+        });
         dialog.add(checkIdBtn);
 
         // 비밀번호 라벨 생성 및 추가
@@ -214,7 +256,23 @@ public class Start extends JFrame {
                 String id = inputId.getText();
                 String pw = new String(inputPw.getPassword());
                 System.out.println("ID: " + id + ", Password: " + pw); // 콘솔에 출력
-                dialog.dispose(); // 다이얼로그 닫기
+                try {
+                    output.writeUTF("ACTION=SignUp&USERNAME="+id+"&PASSWORD="+pw);
+                    output.flush();
+                    String result = input.readUTF().split("&")[1].split("=")[1];
+
+                    if(result.equals("OK")){
+                        dialog.dispose(); // 다이얼로그 닫기
+                        System.out.println("회원가입 성공");
+                    } else {
+                        inputId.setText("");
+                        inputPw.setText("");
+                        System.out.println("회원가입 실패");
+                    }
+                } catch (IOException io){
+                    System.out.println("Error");
+                }
+
             }
         };
         signupBtn.addActionListener(confirmAction);
