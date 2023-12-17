@@ -8,18 +8,18 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.*;
+import java.net.Socket;
+import java.util.List;
 import java.util.Objects;
-import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
+import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
 public class ReadyToGame extends JFrame {
 
+    private Socket socket;
+    private DataOutputStream output;
+    private DataInputStream input;
     private static final Color LINE_COLOR = Color.decode("#DCDCDC");
     private static final Color MENU_PANEL_COLOR = Color.decode("#F7F7F7");
     private static final Color PEOPLE_PANEL_COLOR = Color.decode("#F7F7F7");
@@ -34,9 +34,105 @@ public class ReadyToGame extends JFrame {
     private JPanel profilePanel;
     private JPanel roomsPanel;
 
+    private JPanel userListPanel; // 유저 리스트 패널
+
+
     // 생성자에서 UI 설정
-    public ReadyToGame() {
-        setScreen();
+    public ReadyToGame(Socket socket) {
+        this.socket = socket;
+        try {
+            output = new DataOutputStream(socket.getOutputStream());
+            input = new DataInputStream(socket.getInputStream());
+            enterGame();
+            // UpdateThread 시작
+            setScreen();
+            UpdateThread updateThread = new UpdateThread();
+            updateThread.start();
+        }catch (IOException e){
+
+        }
+
+
+    }
+
+    // 클라이언트에서 게임에 입장할 때 호출하는 메서드
+    public void enterGame() {
+        // 서버에 입장 요청 메시지 전송
+        try {
+            output.writeUTF("ACTION=EnterGame&");
+            output.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // 새로운 스레드 클래스 추가
+    private class UpdateThread extends Thread {
+        @Override
+        public void run() {
+            while (true) {
+                try {
+                    // 서버에 업데이트 요청
+                    // UI 업데이트를 Swing 스레드에서 실행
+                    String inputLine = input.readUTF();
+                    if(inputLine.contains("ACTION")) {
+                        System.out.println("Thread :" + inputLine);
+                        // 메시지 분석
+                        String[] messageParts = inputLine.split("&");
+                        String action = messageParts[0].split("=")[1];
+
+                        // 형식 "ACTION=SIGN_UP&USERNAME=newUser&PASSWORD=password123"
+                        switch (action) {
+                            case "UpdateUserList": {
+                                SwingUtilities.invokeLater(() -> updateUI(messageParts));
+                                System.out.println("UpdateUserList : " + inputLine);
+                                break;
+                            }
+                        }
+                        //System.out.println(inputLine);
+                    }
+
+                    // 일정 간격으로 업데이트를 확인하기 위해 스레드 일시 중지
+                    //Thread.sleep(5000); // 5초마다 업데이트 확인 (조절 가능)
+                }
+//                catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+                catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+
+        // UI 업데이트 메서드
+        private void updateUI(String[] nameList) {
+            // 여기에 UI 업데이트 로직 추가
+            // 예를 들어, 기존의 사용자 목록을 지우고 새로운 목록으로 대체하는 등의 로직을 작성
+            // ...
+
+            // 사용자 목록을 출력하는 JLabel 업데이트
+            userListPanel.removeAll();
+
+            userListPanel.setLayout(new BoxLayout(userListPanel, BoxLayout.Y_AXIS));
+            userListPanel.setBackground(Color.decode("#F7F7F7"));
+
+            // TODO : 여기 서버한테 받아와야 함 (배열로 저장해서 출력하기)
+            // 서버에게 리스트 요청
+
+            // 각각의 이름을 분할
+            for (int i = 1; i < nameList.length; i++) {
+                JLabel label = new JLabel(nameList[i]);
+
+                label.setForeground(Color.BLACK);
+                label.setFont(new Font("Dialog", Font.PLAIN, 15));
+                userListPanel.add(label);
+            }
+
+            System.out.println("리스트 다시 그리기");
+            // 패널 다시 그리기
+            userListPanel.revalidate();
+            userListPanel.repaint();
+        }
     }
 
     // UI 설정
@@ -247,19 +343,34 @@ public class ReadyToGame extends JFrame {
         scrollPane.setBorder(null);
         scrollPane.getViewport().setBackground(Color.decode("#F7F7F7"));
 
-        JPanel contentPanel = new JPanel();
-        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
-        contentPanel.setBackground(Color.decode("#F7F7F7"));
+        userListPanel = new JPanel();
+        userListPanel.setLayout(new BoxLayout(userListPanel, BoxLayout.Y_AXIS));
+        userListPanel.setBackground(Color.decode("#F7F7F7"));
 
         // TODO : 여기 서버한테 받아와야 함 (배열로 저장해서 출력하기)
-        for (int i = 0; i < 15; i++) {
-            JLabel label = new JLabel("Item " + (i + 1));
-            label.setForeground(Color.BLACK);
-            label.setFont(new Font("Dialog", Font.PLAIN, 15));
-            contentPanel.add(label);
+        // 서버에게 리스트 요청
+        try{
+            output.writeUTF("ACTION=FindAll");
+            output.flush();
+            // List<String> 객체 수신
+            System.out.println("보내기 성공");
+            String receivedList = input.readUTF();
+            System.out.println("첫번째 이름 리스트" + receivedList);
+            // 각각의 이름을 분할
+            String[] nameList = receivedList.split("&");
+            for (int i = 1; i < nameList.length; i++) {
+                JLabel label = new JLabel(nameList[i]);
+
+                label.setForeground(Color.BLACK);
+                label.setFont(new Font("Dialog", Font.PLAIN, 15));
+                userListPanel.add(label);
+            }
+        } catch (IOException io){
+            System.out.println(io.getMessage());
         }
 
-        scrollPane.setViewportView(contentPanel);
+
+        scrollPane.setViewportView(userListPanel);
         peoplePanel.add(scrollPane);
     }
 
