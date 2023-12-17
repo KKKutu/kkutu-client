@@ -179,6 +179,7 @@ public class Start extends JFrame {
 
                     String signUpRes = input.readUTF();
                     if(signUpRes.contains("SignIn")){
+
                         if(signUpRes.contains("YES")){
                             dialog.dispose(); // 다이얼로그 닫기
                             System.out.println("로그인 성공");
@@ -188,6 +189,7 @@ public class Start extends JFrame {
                             Start.this.setVisible(false); // 현재 Start 프레임을 숨기기
                             Start.this.dispose(); // 현재 Start 프레임을 닫기
                             new Loading(socket); // Loading 화면 띄우기
+
                         } else {
                             inputId.setText("");
                             inputPw.setText("");
