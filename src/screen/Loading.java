@@ -4,6 +4,9 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.net.Socket;
 import java.util.Objects;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -13,12 +16,19 @@ import javax.swing.Timer;
 
 public class Loading extends JFrame {
 
+    private Socket socket;
     private JLabel countdownLabel;
     private static final int WINDOW_WIDTH = 1000;
     private static final int WINDOW_HEIGHT = 600;
 
     // 생성자에서 UI 설정
-    public Loading() {
+//    public Loading() {
+//        setScreen();
+//        startCountdown(countdownLabel);
+//    }
+
+    public Loading(Socket socket) {
+        this.socket = socket;
         setScreen();
         startCountdown(countdownLabel);
     }
@@ -71,7 +81,7 @@ public class Loading extends JFrame {
 
     // ReadyToGame 화면 열기
     private void openReadyToGameScreen() {
-        new ReadyToGame();
+        new ReadyToGame(socket);
         dispose(); // Loading 화면 닫기
     }
 

@@ -24,6 +24,9 @@ public class Start extends JFrame {
     private static final int serverPort = 9999;
     private DataOutputStream output;
     private DataInputStream input;
+
+    private Socket socket;
+
     private static final int WINDOW_WIDTH = 1000;
     private static final int WINDOW_HEIGHT = 600;
     private static final Color BUTTON_BG_COLOR = Color.decode("#FFFFFF");
@@ -32,7 +35,9 @@ public class Start extends JFrame {
     // 생성자에서 UI 설정
     public Start() {
         try {
-            Socket socket = new Socket(serverAddress, serverPort);
+
+            socket = new Socket(serverAddress, serverPort);
+
             output = new DataOutputStream(socket.getOutputStream());
             input = new DataInputStream(socket.getInputStream());
             output.writeUTF("접속 시도");
@@ -172,7 +177,7 @@ public class Start extends JFrame {
                 dialog.dispose(); // 다이얼로그 닫기
                 Start.this.setVisible(false); // 현재 Start 프레임을 숨기기
                 Start.this.dispose(); // 현재 Start 프레임을 닫기
-                new Loading(); // Loading 화면 띄우기
+                new Loading(socket); // Loading 화면 띄우기
             }
         };
         loginBtn.addActionListener(confirmAction);
