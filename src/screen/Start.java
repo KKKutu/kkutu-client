@@ -179,9 +179,17 @@ public class Start extends JFrame {
 
                     String signUpRes = input.readUTF();
                     if(signUpRes.contains("SignIn")){
-                        if(signUpRes.contains("OK")){
+
+                        if(signUpRes.contains("YES")){
                             dialog.dispose(); // 다이얼로그 닫기
                             System.out.println("로그인 성공");
+
+                            // TODO : 로그인이 성공된 상황에서만 수행되어야 할 작업
+                            dialog.dispose(); // 다이얼로그 닫기
+                            Start.this.setVisible(false); // 현재 Start 프레임을 숨기기
+                            Start.this.dispose(); // 현재 Start 프레임을 닫기
+                            new Loading(socket); // Loading 화면 띄우기
+
                         } else {
                             inputId.setText("");
                             inputPw.setText("");
@@ -192,11 +200,7 @@ public class Start extends JFrame {
                 } catch (IOException io){
                     System.out.println(io.getMessage());
                 }
-                // TODO : 로그인이 성공된 상황에서만 수행되어야 할 작업
-                dialog.dispose(); // 다이얼로그 닫기
-                Start.this.setVisible(false); // 현재 Start 프레임을 숨기기
-                Start.this.dispose(); // 현재 Start 프레임을 닫기
-                new Loading(socket); // Loading 화면 띄우기
+
             }
         };
         loginBtn.addActionListener(confirmAction);
