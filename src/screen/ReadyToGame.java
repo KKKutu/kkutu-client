@@ -1,23 +1,23 @@
 package screen;
 
-import static component.RoundedMenu.createRoundedPanel;
-
+import bgm.MP3Player;
 import component.RoundedButton;
 import component.RoundedIdField;
 import component.RoundedTitle;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Graphics;
+
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.*;
 import java.net.Socket;
-import java.util.List;
 import java.util.Objects;
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
+
+import static component.RoundedMenu.createRoundedPanel;
+
 
 public class ReadyToGame extends JFrame {
 
@@ -49,6 +49,14 @@ public class ReadyToGame extends JFrame {
         try {
             output = new DataOutputStream(socket.getOutputStream());
             input = new DataInputStream(socket.getInputStream());
+
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    new Thread(new MP3Player()).start();
+                }
+            });
+
 //            enterGame();
             // UpdateThread 시작
             setScreen();
