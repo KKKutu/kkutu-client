@@ -50,6 +50,7 @@ public class ReadyToGame extends JFrame {
             output = new DataOutputStream(socket.getOutputStream());
             input = new DataInputStream(socket.getInputStream());
 
+            // 배경음악 틀기
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
@@ -65,20 +66,8 @@ public class ReadyToGame extends JFrame {
         }catch (IOException e){
 
         }
-
-
     }
 
-    // 클라이언트에서 게임에 입장할 때 호출하는 메서드
-    public void enterGame() {
-        // 서버에 입장 요청 메시지 전송
-        try {
-            output.writeUTF("ACTION=EnterGame&");
-            output.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
     // 새로운 스레드 클래스 추가
     private class UpdateThread extends Thread {
@@ -107,7 +96,7 @@ public class ReadyToGame extends JFrame {
                             case "UpdateRoomList": {
                                 // 접속자 리스트 업데이트
                                 int roomLength = Integer.parseInt(messageParts[1]);
-                                SwingUtilities.invokeLater(() -> updateRoomList(roomLength));
+                                SwingUtilities.invokeLater(() -> updateRoomList(messageParts, roomLength));
 
                                 System.out.println("UpdateRoomList : " + inputLine);
                                 break;
@@ -172,7 +161,9 @@ public class ReadyToGame extends JFrame {
             peoplePanel.add(addPeopleListPanel);
         }
 
-        private void updateRoomList(int roomLength) {
+        private void updateRoomList(String[] result, int roomLength) {
+
+            // 방 개수 업데이트 하기
             roomListPanel.removeAll();
 
             // 텍스트 레이블 추가
@@ -186,6 +177,18 @@ public class ReadyToGame extends JFrame {
             roomListPanel.repaint();
             roomsPanel.add(roomListPanel);
 
+            // 방 리스트 업데이트하기
+            // result 형식 : ACTION=UpdateRoomList&1&0&test&2&3&30초
+            // 순서 roomId / title / playerNum / round / time
+            for (int i=2; i<result.length; i++) {
+                String[] roomInfo = result[i].split(",");
+                String roomId = roomInfo[0];
+                String title = roomInfo[1] + "님의 방";
+                String playerNum = roomInfo[2];
+                String round = "라운드 " + roomInfo[3];
+                String time = roomInfo[4] + "초";
+
+            }
         }
     }
 
