@@ -35,6 +35,7 @@ public class ReadyToGame extends JFrame {
 
     private JPanel menuPanel;
     private JPanel peoplePanel;
+    private JPanel addPeopleListPanel;
     private JPanel profilePanel;
     private JPanel roomsPanel;
 
@@ -88,7 +89,9 @@ public class ReadyToGame extends JFrame {
                         // 형식 "ACTION=SIGN_UP&USERNAME=newUser&PASSWORD=password123"
                         switch (action) {
                             case "UpdateUserList": {
+                                // 접속자 리스트 업데이트
                                 SwingUtilities.invokeLater(() -> updateUI(messageParts));
+
                                 System.out.println("UpdateUserList : " + inputLine);
                                 break;
                             }
@@ -120,11 +123,9 @@ public class ReadyToGame extends JFrame {
             userListPanel.setLayout(new BoxLayout(userListPanel, BoxLayout.Y_AXIS));
             userListPanel.setBackground(Color.decode("#F7F7F7"));
 
-            // TODO : 여기 서버한테 받아와야 함 (배열로 저장해서 출력하기)
-            // 서버에게 리스트 요청
 
             // 각각의 이름을 분할
-            for (int i = 1; i < nameList.length; i++) {
+            for (int i = 2; i < nameList.length; i++) {
                 JLabel label = new JLabel(nameList[i]);
 
                 label.setForeground(Color.BLACK);
@@ -136,6 +137,22 @@ public class ReadyToGame extends JFrame {
             // 패널 다시 그리기
             userListPanel.revalidate();
             userListPanel.repaint();
+
+            // 접속자 수 다시 그리기
+            addPeopleListPanel.removeAll();
+            // 이미지 라벨 생성 및 추가
+            JLabel imageLabel = createImageLabel("../image/readytogame/address.png", 10, 8, 24, 24);
+            addPeopleListPanel.add(imageLabel);
+
+            JLabel textLabel = new JLabel("접속자 목록 [" + nameList[1] + "]");
+            textLabel.setBounds(40, 8, 200, 24); // 위치와 크기 설정 (이미지 옆)
+            textLabel.setForeground(Color.BLACK);
+            textLabel.setFont(new Font("Dialog", Font.PLAIN, 15));
+
+            addPeopleListPanel.add(textLabel);
+            addPeopleListPanel.revalidate();
+            addPeopleListPanel.repaint();
+            peoplePanel.add(addPeopleListPanel);
         }
     }
 
@@ -271,21 +288,39 @@ public class ReadyToGame extends JFrame {
         int greyPanelHeight = 40;
         int greyPanelX = 10;
         int greyPanelY = 10;
-        JPanel greyPanel = RoundedTitle.createRoundedPanel(greyPanelX, greyPanelY, greyPanelWidth, greyPanelHeight, greyPanelColor, 15);
-        greyPanel.setLayout(null);
+        addPeopleListPanel = RoundedTitle.createRoundedPanel(greyPanelX, greyPanelY, greyPanelWidth, greyPanelHeight, greyPanelColor, 15);
+        addPeopleListPanel.setLayout(null);
 
         // 이미지 라벨 생성 및 추가
         JLabel imageLabel = createImageLabel("../image/readytogame/address.png", 10, 8, 24, 24);
-        greyPanel.add(imageLabel);
+        addPeopleListPanel.add(imageLabel);
 
-        // 텍스트 레이블 추가
-        JLabel textLabel = new JLabel("접속자 목록 [15명]"); // TODO : 여기 서버한테 받아와야 함
-        textLabel.setBounds(40, 8, 200, 24); // 위치와 크기 설정 (이미지 옆)
-        textLabel.setForeground(Color.BLACK);
-        textLabel.setFont(new Font("Dialog", Font.PLAIN, 15));
+        String userLength;
+        // 유저 수 가져오기
+        try{
+            output.writeUTF("ACTION=UserLength");
+            output.flush();
+            // List<String> 객체 수신
+            String receivedData = input.readUTF();
 
-        greyPanel.add(textLabel);
-        peoplePanel.add(greyPanel);
+            if(receivedData.contains("UserLength")){
+                // 각각의 이름을 분할
+                userLength = receivedData.split("&")[1];
+                // 텍스트 레이블 추가
+                JLabel textLabel = new JLabel("접속자 목록 [" + userLength + "]");
+                textLabel.setBounds(40, 8, 200, 24); // 위치와 크기 설정 (이미지 옆)
+                textLabel.setForeground(Color.BLACK);
+                textLabel.setFont(new Font("Dialog", Font.PLAIN, 15));
+
+                addPeopleListPanel.add(textLabel);
+                peoplePanel.add(addPeopleListPanel);
+            }
+
+        } catch (IOException io){
+            System.out.println(io.getMessage());
+        }
+
+
     }
 
     // 내 프로필 타이틀
