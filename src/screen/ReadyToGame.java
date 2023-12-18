@@ -51,12 +51,12 @@ public class ReadyToGame extends JFrame {
             input = new DataInputStream(socket.getInputStream());
 
             // 배경음악 틀기
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    new Thread(new MP3Player()).start();
-                }
-            });
+//            SwingUtilities.invokeLater(new Runnable() {
+//                @Override
+//                public void run() {
+//                    new Thread(new MP3Player()).start();
+//                }
+//            });
 
 //            enterGame();
             // UpdateThread 시작
@@ -102,7 +102,7 @@ public class ReadyToGame extends JFrame {
                                 break;
                             }
                         }
-                        //System.out.println(inputLine);
+                        System.out.println("test InputLine : " + inputLine);
                     }
 
                     // 일정 간격으로 업데이트를 확인하기 위해 스레드 일시 중지
