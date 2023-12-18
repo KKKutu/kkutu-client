@@ -458,19 +458,34 @@ public class ReadyToGame extends JFrame {
 
     // 아이디 보여주기
     private void addId() {
-        String userName = "가자미가자미가자미"; // TODO : 서버에서 받아오거나 여기서(클라이언트 프로프램에서) 사용자 정보를 저장하는 클래스에서 가져오기
-        int fontSize = 15;
-        JLabel idLabel = createTextLabel(userName, fontSize);
+        // 서버에게 유저 이름 요청
+        try{
+            output.writeUTF("ACTION=UserName");
+            output.flush();
 
-        // 라벨의 x 위치를 중앙 정렬을 위해 계산
-        int labelWidth = idLabel.getPreferredSize().width;
-        int xPosition = (profilePanel.getWidth() - labelWidth) / 2;
+            String receivedData = input.readUTF();
+            if(receivedData.contains("UserName")){
 
-        // 프로필 제목 아래에 라벨 위치 설정
-        int yPosition = 70;
+                String userName = receivedData.split("&")[1]; // TODO : 서버에서 받아오거나 여기서(클라이언트 프로프램에서) 사용자 정보를 저장하는 클래스에서 가져오기
+                int fontSize = 15;
+                JLabel idLabel = createTextLabel(userName, fontSize);
 
-        idLabel.setBounds(xPosition, yPosition, labelWidth, idLabel.getPreferredSize().height);
-        profilePanel.add(idLabel);
+                // 라벨의 x 위치를 중앙 정렬을 위해 계산
+                int labelWidth = idLabel.getPreferredSize().width;
+                int xPosition = (profilePanel.getWidth() - labelWidth) / 2;
+
+                // 프로필 제목 아래에 라벨 위치 설정
+                int yPosition = 70;
+
+                idLabel.setBounds(xPosition, yPosition, labelWidth, idLabel.getPreferredSize().height);
+                profilePanel.add(idLabel);
+            }
+
+
+        } catch (IOException io){
+            System.out.println(io.getMessage());
+        }
+
     }
 
     // 프로필 이미지 보여주기
