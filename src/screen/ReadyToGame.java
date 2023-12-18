@@ -3,6 +3,7 @@ package screen;
 import static component.RoundedMenu.createRoundedPanel;
 
 import component.RoundedButton;
+import component.RoundedIdField;
 import component.RoundedTitle;
 import java.awt.Color;
 import java.awt.Font;
@@ -239,6 +240,7 @@ public class ReadyToGame extends JFrame {
             public void mouseClicked(MouseEvent e) {
                 // 다음 화면으로 넘어가기
                 System.out.println("다음 화면으로 넘어갑니다");
+                makeRoomDialog();
             }
         });
     }
@@ -589,6 +591,105 @@ public class ReadyToGame extends JFrame {
         dialog.setSize(600, 350); // 다이얼로그 크기 설정
         dialog.setResizable(false);
         dialog.setLocationRelativeTo(null); // 화면 중앙에 위치
+        dialog.setVisible(true); // 다이얼로그 보이기
+    }
+
+    private void makeRoomDialog() {
+        JDialog dialog = new JDialog(this, "방 만들기", true); // true로 설정하여 모달로 만듦
+        dialog.setLayout(null);
+        dialog.setTitle("방 만들기");
+        dialog.setSize(300, 250); // 다이얼로그 크기 설정
+        dialog.setResizable(false);
+        dialog.setLocationRelativeTo(null); // 화면 중앙에 위치
+
+        // 방 제목 텍스트 라벨
+        JLabel roomTitleText = new JLabel("방 제목");
+        roomTitleText.setBounds(29, 26, 100, 20);
+        roomTitleText.setFont(new Font("Dialog", Font.PLAIN, 12));
+
+        // 플레이어 수 텍스트 라벨
+        JLabel playerNumText = new JLabel("플레이어 수");
+        playerNumText.setBounds(18, 61, 100, 20);
+        playerNumText.setFont(new Font("Dialog", Font.PLAIN, 12));
+
+        // 라운드 수 텍스트 라벨
+        JLabel roundNumText = new JLabel("라운드 수");
+        roundNumText.setBounds(24, 96, 100, 20);
+        roundNumText.setFont(new Font("Dialog", Font.PLAIN, 12));
+
+        // 라운드 시간 텍스트 라벨
+        JLabel roundTimeText = new JLabel("라운드 시간");
+        roundTimeText.setBounds(18, 131, 100, 20);
+        roundTimeText.setFont(new Font("Dialog", Font.PLAIN, 12));
+
+        // 방 제목 입력 필드
+        RoundedIdField inputRoomTitle = new RoundedIdField(20, 10);
+        inputRoomTitle.setBounds(97, 21, 185, 25);
+        dialog.add(inputRoomTitle);
+
+        // 플레이어 수 선택 박스
+        String[] playerNumChoices = {"2", "3", "4"}; // 플레이어 수 옵션 (2, 3, 4)
+        JComboBox<String> playerNumSelectBox = new JComboBox<>(playerNumChoices);
+        playerNumSelectBox.setBounds(93, 60, 190, 30);
+        playerNumSelectBox.setSelectedItem("2"); // 디폴트 값 설정
+        dialog.add(playerNumSelectBox);
+
+        // 라운드 수 선택 박스
+        String[] roundNumChoices = {"2", "3", "4"}; // 라운드 수 옵션 (2, 3, 4)
+        JComboBox<String> roundNumSelectBox = new JComboBox<>(roundNumChoices);
+        roundNumSelectBox.setBounds(93, 95, 190, 30);
+        roundNumSelectBox.setSelectedItem("3"); // 디폴트 값 설정
+        dialog.add(roundNumSelectBox);
+
+        // 라운드 시간 선택 박스
+        String[] roundTimeChoices = {"30초", "60초"};
+        JComboBox<String> roundTimeSelectBox = new JComboBox<>(roundTimeChoices);
+        roundTimeSelectBox.setBounds(93, 130, 190, 30);
+
+        // 확인 버튼
+        RoundedButton confirmBtn = new RoundedButton("확인", 30); // 두 번째 매개변수는 round 정도
+        confirmBtn.setBounds(110, 175, 80, 28); // x 좌표, y 좌표, 너비, 높이
+        confirmBtn.setBackground(Color.decode("#EEEEEE")); // 버튼 배경 색
+        confirmBtn.setFont(new Font("Dialog", Font.PLAIN, 12)); // 폰트 지정
+
+        // 구성 요소 다이얼로그에 추가
+        dialog.add(roomTitleText); // 방 제목
+        dialog.add(playerNumText); // 플레이어 수
+        dialog.add(roundNumText); // 라운드 수
+
+        // 라운드 시간
+        dialog.add(roundTimeText);
+        dialog.add(roundTimeSelectBox);
+
+        // 확인 버튼에 대한 ActionListener 추가
+        confirmBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // 입력받은 값들을 콘솔에 출력
+                String selectedRoomTitle = inputRoomTitle.getText();
+                String selectedPlayerNum = (String) playerNumSelectBox.getSelectedItem();
+                String selectedRoundNum = (String) roundNumSelectBox.getSelectedItem();
+                String selectedRoundTime = (String) roundTimeSelectBox.getSelectedItem();
+
+                System.out.println("방 제목: " + selectedRoomTitle);
+                System.out.println("플레이어 수: " + selectedPlayerNum);
+                System.out.println("라운드 수: " + selectedRoundNum);
+                System.out.println("라운드 시간: " + selectedRoundTime);
+
+                // 다이얼로그 닫기
+                dialog.dispose();
+
+                // 상위 프레임 닫기
+                dispose();
+
+                // Room 클래스 실행
+                new Room();
+            }
+        });
+
+        // 확인 버튼
+        dialog.add(confirmBtn);
+
         dialog.setVisible(true); // 다이얼로그 보이기
     }
 
