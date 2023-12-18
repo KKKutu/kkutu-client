@@ -38,6 +38,7 @@ public class ReadyToGame extends JFrame {
     private JPanel addPeopleListPanel;
     private JPanel profilePanel;
     private JPanel roomsPanel;
+    private JPanel roomListPanel;
 
     private JPanel userListPanel; // 유저 리스트 패널
 
@@ -93,6 +94,14 @@ public class ReadyToGame extends JFrame {
                                 SwingUtilities.invokeLater(() -> updateUI(messageParts));
 
                                 System.out.println("UpdateUserList : " + inputLine);
+                                break;
+                            }
+                            case "UpdateRoomList": {
+                                // 접속자 리스트 업데이트
+                                int roomLength = Integer.parseInt(messageParts[1]);
+                                SwingUtilities.invokeLater(() -> updateRoomList(roomLength));
+
+                                System.out.println("UpdateRoomList : " + inputLine);
                                 break;
                             }
                         }
@@ -153,6 +162,22 @@ public class ReadyToGame extends JFrame {
             addPeopleListPanel.revalidate();
             addPeopleListPanel.repaint();
             peoplePanel.add(addPeopleListPanel);
+        }
+
+        private void updateRoomList(int roomLength) {
+            roomListPanel.removeAll();
+
+            // 텍스트 레이블 추가
+            JLabel textLabel = new JLabel("방 목록 ["+ roomLength + "]");
+            textLabel.setBounds(40, 8, 200, 24); // 위치와 크기 설정 (이미지 옆)
+            textLabel.setForeground(Color.BLACK);
+            textLabel.setFont(new Font("Dialog", Font.PLAIN, 15));
+
+            roomListPanel.add(textLabel);
+            roomListPanel.revalidate();
+            roomListPanel.repaint();
+            roomsPanel.add(roomListPanel);
+
         }
     }
 
@@ -354,21 +379,33 @@ public class ReadyToGame extends JFrame {
         int greyPanelHeight = 40;
         int greyPanelX = 10;
         int greyPanelY = 10;
-        JPanel greyPanel = RoundedTitle.createRoundedPanel(greyPanelX, greyPanelY, greyPanelWidth, greyPanelHeight, greyPanelColor, 15);
-        greyPanel.setLayout(null);
+        roomListPanel = RoundedTitle.createRoundedPanel(greyPanelX, greyPanelY, greyPanelWidth, greyPanelHeight, greyPanelColor, 15);
+        roomListPanel.setLayout(null);
 
         // 이미지 라벨 생성 및 추가
         JLabel imageLabel = createImageLabel("../image/readytogame/list.png", 10, 8, 24, 24);
-        greyPanel.add(imageLabel);
+        roomListPanel.add(imageLabel);
 
-        // 텍스트 레이블 추가
-        JLabel textLabel = new JLabel("방 목록 [34개]"); // TODO : 여기 서버한테 받아와야 함
-        textLabel.setBounds(40, 8, 200, 24); // 위치와 크기 설정 (이미지 옆)
-        textLabel.setForeground(Color.BLACK);
-        textLabel.setFont(new Font("Dialog", Font.PLAIN, 15));
+        try {
+            output.writeUTF("ACTION=RoomLength");
+            output.flush();
 
-        greyPanel.add(textLabel);
-        roomsPanel.add(greyPanel);
+            String receivedData = input.readUTF();
+            if(receivedData.contains("RoomLength")){
+                int roomLength = Integer.parseInt(receivedData.split("&")[1]);
+                // 텍스트 레이블 추가
+                JLabel textLabel = new JLabel("방 목록 ["+ roomLength + "]");
+                textLabel.setBounds(40, 8, 200, 24); // 위치와 크기 설정 (이미지 옆)
+                textLabel.setForeground(Color.BLACK);
+                textLabel.setFont(new Font("Dialog", Font.PLAIN, 15));
+
+                roomListPanel.add(textLabel);
+                roomsPanel.add(roomListPanel);
+            }
+        } catch (IOException io){
+            System.out.println(io.getMessage());
+        }
+
     }
 
     // 접속자 리스트 스크롤팬 추가
