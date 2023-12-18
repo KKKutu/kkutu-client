@@ -48,7 +48,7 @@ public class ReadyToGame extends JFrame {
         try {
             output = new DataOutputStream(socket.getOutputStream());
             input = new DataInputStream(socket.getInputStream());
-            enterGame();
+//            enterGame();
             // UpdateThread 시작
             setScreen();
             UpdateThread updateThread = new UpdateThread();
@@ -387,7 +387,7 @@ public class ReadyToGame extends JFrame {
         userListPanel.setLayout(new BoxLayout(userListPanel, BoxLayout.Y_AXIS));
         userListPanel.setBackground(Color.decode("#F7F7F7"));
 
-        // TODO : 여기 서버한테 받아와야 함 (배열로 저장해서 출력하기)
+
         // 서버에게 리스트 요청
         try{
             output.writeUTF("ACTION=FindAll");
@@ -725,6 +725,14 @@ public class ReadyToGame extends JFrame {
                 System.out.println("플레이어 수: " + selectedPlayerNum);
                 System.out.println("라운드 수: " + selectedRoundNum);
                 System.out.println("라운드 시간: " + selectedRoundTime);
+
+                try {
+                    output.writeUTF("ACTION=CreateRoom&" + selectedRoomTitle  + "&" + selectedPlayerNum  + "&" + selectedRoundNum  + "&"
+                            + selectedRoundTime);
+                    output.flush();
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
 
                 // 다이얼로그 닫기
                 dialog.dispose();
