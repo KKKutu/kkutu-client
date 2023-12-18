@@ -466,7 +466,7 @@ public class ReadyToGame extends JFrame {
             String receivedData = input.readUTF();
             if(receivedData.contains("UserName")){
 
-                String userName = receivedData.split("&")[1]; // TODO : 서버에서 받아오거나 여기서(클라이언트 프로프램에서) 사용자 정보를 저장하는 클래스에서 가져오기
+                String userName = receivedData.split("&")[1];
                 int fontSize = 15;
                 JLabel idLabel = createTextLabel(userName, fontSize);
 
