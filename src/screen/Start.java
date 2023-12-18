@@ -244,15 +244,20 @@ public class Start extends JFrame {
                 try {
                     output.writeUTF("ACTION=FindName&USERNAME="+id);
                     output.flush();
-                    String result = input.readUTF().split("&")[1].split("=")[1];
+                    String receivedData = input.readUTF();
+                    String result = receivedData.split("&")[1].split("=")[1];
 
-                    // NO인 경우 중복되지 않음
-                    if(result.equals("NO")){
-                        System.out.println("중복 X");
-                    } else {
-                        inputId.setText("");
-                        System.out.println("중복 O");
+                    // NO인 경우 중복되지 않음복
+                    if(receivedData.contains("FindName")){
+
+                        if(result.equals("NO")){
+                            System.out.println("중복 X");
+                        } else {
+                            inputId.setText("");
+                            System.out.println("중복 O");
+                        }
                     }
+
                 } catch (IOException io){
                     System.out.println("Error");
                 }
