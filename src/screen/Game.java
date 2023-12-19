@@ -1,8 +1,12 @@
 package screen;
 
+import component.RoundedPersonPanel;
+import component.RoundedPersonPanel.RoundedPanel;
 import component.RoundedWordField;
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.Socket;
@@ -11,6 +15,7 @@ import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.Timer;
 
@@ -22,6 +27,12 @@ public class Game extends JFrame {
     private RoundedWordField inputField;
     private JLabel chainLabel; // 몇 번 이어갔는지 표시하는 라벨
     private int chainValue = 0; // 현재 몇 번 이어갔는지 값
+    private int currentPerson = 0; // 현재 차례인 사람의 인덱스 (0부터 시작)
+    private JPanel[] personPanels; // 사람 패널들을 저장할 배열
+    private JLabel[] scoreLabels; // 점수 라벨들을 저장할 배열
+    private String selectedWord; // 뽑힌 단어를 저장하는 변수
+    private String lastWord = ""; // 마지막으로 입력된 단어 저장
+    private JLabel wordLabel; // 사용자가 입력한 단어를 보여주는 라벨
 
     private boolean isReadyStatus = true;
 
@@ -35,10 +46,27 @@ public class Game extends JFrame {
     private static final int WINDOW_WIDTH = 1000;
     private static final int WINDOW_HEIGHT = 600;
 
+    private String[] threeLengthWordArr = {"개나리", "강남역", "보조개", "수영장", "오리발", "어린이"};
+    private String[] fiveLengthWordArr = {"아이스크림", "크리스마스", "아메리카노", "오케스트라", "코인노래방"};
+    private String[] selectedWordArray; // 선택된 단어를 글자별로 저장하는 배열
+
     public Game(Socket socket) {
         this.socket = socket;
+
+        // 랜덤 단어 선택 및 분리
+        selectAndSplitWord();
+
         setScreen();
         startCountdown(countdownLabel);
+    }
+
+    private void selectAndSplitWord() {
+        String[] wordArr = roundNum == 3 ? threeLengthWordArr : fiveLengthWordArr;
+        selectedWord = wordArr[(int) (Math.random() * wordArr.length)];
+        System.out.println("뽑힌 단어는? " + selectedWord);
+
+        selectedWordArray = selectedWord.split("");
+        lastWord = selectedWordArray[0];
     }
 
     // UI 설정
@@ -62,10 +90,14 @@ public class Game extends JFrame {
     // 패널들 부착
     private void addPanels() {
 
+        // 뽑힌 단어 표시
+        JLabel wordLabel = createWord();
+        add(wordLabel);
+        add(showInputText()); // 사용자가 입력한 단어 보여주기
         add(createFrog()); // 개구리 이미지
 
-        chainLabel = createScoreLabel(); // 점수 레이블 생성
-        add(chainLabel); // 점수 레이블 추가
+        chainLabel = createChainLabel(); // 점수 라벨 생성
+        add(chainLabel); // 체인 라벨 추가
 
         add(createChain()); // 체인 이미지
 
@@ -77,16 +109,93 @@ public class Game extends JFrame {
         add(timerLabel); // 타이머 이미지 라벨 추가
 
         add(createTimerImg()); // 타이머 이미지
+
+        // 사용자 패널 추가
+        add(personPanel(4));
+
         add(createBackground()); // 배경 (마지막에 넣기)
     }
 
-    // 점수 레이블 생성
-    private JLabel createScoreLabel() {
+
+    // 체인 라벨 생성
+    private JLabel createChainLabel() {
         JLabel label = new JLabel("0", SwingConstants.CENTER);
         label.setFont(new Font("Dialog", Font.BOLD, 30));
         label.setForeground(Color.WHITE);
         label.setBounds(808, 115, 50, 50); // 위치와 크기 설정
         return label;
+    }
+
+    // 사용자가 입력한 단어를 보여주는 라벨
+    private JLabel showInputText() {
+        wordLabel = new JLabel("", SwingConstants.CENTER);
+        wordLabel.setFont(new Font("Dialog", Font.BOLD, 17));
+        wordLabel.setForeground(Color.WHITE);
+        wordLabel.setBounds(0, 130, WINDOW_WIDTH, 30); // 프레임 전체 너비를 사용하도록 설정
+        wordLabel.setHorizontalAlignment(SwingConstants.CENTER); // 가운데 정렬
+        return wordLabel;
+    }
+
+    // 사용자들 추가
+    private JPanel personPanel(int personNum) {
+        JPanel panel = new JPanel();
+        panel.setLayout(null);
+        panel.setBounds(0, 250, 1000, 223);
+        panel.setOpaque(false); // 투명 배경 설정
+
+        personPanels = new JPanel[personNum]; // 패널 배열 초기화
+        scoreLabels = new JLabel[personNum]; // 점수 라벨 배열 초기화
+
+        for (int i = 0; i < personNum; i++) {
+            // 둥근 모서리 패널 생성
+            JPanel person = RoundedPersonPanel.createRoundedPanel(38 + i * (162 + 34), 0, 162, 223, Color.decode("#D8D8D8"), 10);
+            person.setLayout(null);
+
+            // 이미지 라벨의 위치 계산
+            int imageLabelSize = 150;
+            int imageLabelX = (person.getWidth() - imageLabelSize) / 2;
+            int imageLabelY = (person.getHeight() - imageLabelSize) / 2 - 40; // 약간 위쪽으로 조정
+
+            // 이미지 라벨 추가
+            JLabel imageLabel = createImageLabel("../image/profile/1.png", imageLabelX, imageLabelY, imageLabelSize, imageLabelSize);
+            person.add(imageLabel);
+
+            // ID 라벨 추가
+            JLabel idLabel = new JLabel("닉네임22", SwingConstants.CENTER);
+            idLabel.setFont(new Font("Dialog", Font.BOLD, 15));
+            idLabel.setForeground(Color.BLACK);
+            int idLabelWidth = 100;
+            int idLabelX = (person.getWidth() - idLabelWidth) / 2;
+            idLabel.setBounds(idLabelX, 132, idLabelWidth, 20);
+            person.add(idLabel);
+
+            // 점수 라벨 추가
+            JLabel scoreLabel = new JLabel("00000");
+            scoreLabel.setFont(new Font("Dialog", Font.BOLD, 40));
+            scoreLabel.setForeground(Color.BLACK);
+            scoreLabel.setBounds(16, 161, 162, 40);
+            person.add(scoreLabel);
+
+            panel.add(person); // 생성된 패널을 메인 패널에 추가
+            personPanels[i] = person; // 여기에 추가: 패널을 배열에 저장
+            scoreLabels[i] = scoreLabel; // 점수 라벨을 배열에 저장
+        }
+
+        updatePanelUI(); // 초기 UI 업데이트
+        return panel;
+    }
+
+    // 패널 UI 업데이트 메서드
+    private void updatePanelUI() {
+        for (int i = 0; i < personPanels.length; i++) {
+            if (i == currentPerson) {
+                // 현재 차례인 사람의 패널 스타일 변경
+                ((RoundedPanel)personPanels[i]).setStyle(Color.decode("#CEFFDB"), Color.decode("#008C25"), 3);
+            } else {
+                // 다른 사람의 패널은 기본 스타일로
+                ((RoundedPanel)personPanels[i]).setStyle(Color.decode("#D8D8D8"), Color.BLACK, 1);
+            }
+        }
     }
 
     // 입력 필드
@@ -100,21 +209,43 @@ public class Game extends JFrame {
         field.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (!isReadyStatus) { // isReadyStatus가 false일 때만 동작
-                    String inputText = field.getText(); // 입력 필드의 텍스트 가져오기
-                    if(!inputText.isEmpty()) { // 비어있지 않은 경우에만!!
+                if (!isReadyStatus) {
+                    String inputText = field.getText().trim();
+                    // 입력된 단어가 유효하고, 단순히 시작 글자만 입력된 것이 아닌 경우
+                    if (!inputText.isEmpty() && isValidWord(inputText) && !inputText.equals(lastWord)) {
+                        System.out.println(inputText); // 입력받은 단어 출력
+                        chainValue++;
+                        chainLabel.setText(String.valueOf(chainValue));
 
-                        // System.out.println 대신에
-                        // TODO : 있는 단어인지 검증 - 있는 단어라면 글자 수 세기, 유저의 점수 올리기, chain 1 증가
-                        System.out.println(inputText); // 콘솔에 텍스트 출력
-                        chainValue++; // 점수 증가
-                        chainLabel.setText(String.valueOf(chainValue)); // 레이블 업데이트
+                        int newScore = Integer.parseInt(scoreLabels[currentPerson].getText()) + inputText.length() * 5;
+                        scoreLabels[currentPerson].setText(String.format("%05d", newScore));
 
-                        field.setText(""); // 입력 필드 초기화
-                        field.requestFocusInWindow(); // 입력 필드에 다시 포커스 설정
+                        // 단어 라벨 업데이트
+                        updateWordLabel(inputText);
+
+                        // 다음 차례 설정
+                        lastWord = inputText.substring(inputText.length() - 1);
+                        currentPerson = (currentPerson + 1) % personPanels.length;
+                        updatePanelUI();
                     }
-
+                    // 입력 필드 초기화
+                    field.setText("");
+                    field.requestFocusInWindow();
                 }
+            }
+
+            // 단어 라벨 위치 업데이트
+            private void updateWordLabel(String text) {
+                wordLabel.setText(text);
+                FontMetrics fm = wordLabel.getFontMetrics(wordLabel.getFont());
+                int textWidth = fm.stringWidth(text);
+                int labelX = (WINDOW_WIDTH - textWidth) / 2;
+                wordLabel.setBounds(labelX, 130, textWidth, 30);
+            }
+
+            // 끝말잇기 유효성 검사
+            private boolean isValidWord(String word) {
+                return word.startsWith(lastWord);
             }
         });
 
@@ -164,18 +295,28 @@ public class Game extends JFrame {
         timer.start();
     }
 
-    // 게임 끝
+    // 게임 끝 - 아직은 사용 X
     private void GameOver() {
         System.out.println("게임 끝!");
 //        new ReadyToGame(socket);
 //        dispose(); // Loading 화면 닫기
     }
 
+    // 뽑힌 단어를 보여주는 라벨 생성
+    private JLabel createWord() {
+        JLabel wordLabel = new JLabel(selectedWord, SwingConstants.CENTER);
+        wordLabel.setFont(new Font("Dialog", Font.BOLD, 20));
+        wordLabel.setForeground(Color.WHITE);
+        wordLabel.setBounds(448, 68, 100, 30);
+        return wordLabel;
+    }
+
     // 라운드 시작 시 호출되는 메서드
     private void startNewRound() {
-        chainValue = 0; // 점수 초기화
-        chainLabel.setText("0"); // 레이블 초기화
-        // 라운드 시작 로직...
+        chainValue = 0;
+        chainLabel.setText("0");
+        lastWord = selectedWordArray[currentRound]; // 새로운 시작 글자 설정
+        System.out.println(lastWord + "로 시작하는 단어로 게임 시작");
     }
 
     // 타이머 외관 업데이트
