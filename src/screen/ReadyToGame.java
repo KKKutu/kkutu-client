@@ -71,9 +71,10 @@ public class ReadyToGame extends JFrame {
 
     // 새로운 스레드 클래스 추가
     private class UpdateThread extends Thread {
+
         @Override
         public void run() {
-            while (true) {
+            while (!isInterrupted()) {
                 try {
                     // 서버에 업데이트 요청
                     // UI 업데이트를 Swing 스레드에서 실행
@@ -101,20 +102,24 @@ public class ReadyToGame extends JFrame {
                                 System.out.println("UpdateRoomList : " + inputLine);
                                 break;
                             }
-                        }
-                        System.out.println("test InputLine : " + inputLine);
-                    }
+                            case "CreateRoom": {
 
+                                System.out.println("CreateRoom : " + inputLine);
+                                break;
+                            }
+                        }
+
+                    }
+                    System.out.println("test InputLine : " + inputLine);
                     // 일정 간격으로 업데이트를 확인하기 위해 스레드 일시 중지
-                    //Thread.sleep(5000); // 5초마다 업데이트 확인 (조절 가능)
-                }
-//                catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
-                catch (IOException e) {
+                    Thread.sleep(200); // 5초마다 업데이트 확인 (조절 가능)
+                } catch (IOException | InterruptedException e) {
                     throw new RuntimeException(e);
                 }
             }
+        }
+        public void stopThread() {
+            super.interrupt();
         }
 
         // UI 업데이트 메서드
@@ -775,21 +780,28 @@ public class ReadyToGame extends JFrame {
                 System.out.println("라운드 시간: " + selectedRoundTime);
 
                 try {
+                    System.out.println("updateThread=interrupt");
+
                     output.writeUTF("ACTION=CreateRoom&" + selectedRoomTitle  + "&" + selectedPlayerNum  + "&" + selectedRoundNum  + "&"
                             + selectedRoundTime);
                     output.flush();
+//                    String data = input.readUTF();
+
+                    // 다이얼로그 닫기
+                    dialog.dispose();
+
+                    // 상위 프레임 닫기
+                    dispose();
+
+                    // Room 클래스 실행
+                    new Room(socket);
+
+
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
                 }
 
-                // 다이얼로그 닫기
-                dialog.dispose();
 
-                // 상위 프레임 닫기
-                dispose();
-
-                // Room 클래스 실행
-                new Room();
             }
         });
 
