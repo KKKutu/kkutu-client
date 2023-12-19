@@ -8,7 +8,10 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.Socket;
 import java.util.Objects;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -17,6 +20,9 @@ import javax.swing.JPanel;
 
 public class Room extends JFrame {
 
+    private Socket socket;
+    private DataOutputStream output;
+    private DataInputStream input;
     private static final Color MENU_PANEL_COLOR = Color.decode("#F7F7F7");
     private static final Color LINE_COLOR = Color.decode("#E0DEDE");
     private static final Color ROOM_INFORMATION_PANEL_COLOR = Color.decode("#F7F7F7");
@@ -29,8 +35,16 @@ public class Room extends JFrame {
     private JPanel peoplePanel;
 
     // 생성자에서 UI 설정
-    public Room() {
-        setScreen();
+    public Room(Socket socket) {
+        this.socket = socket;
+        try {
+            output = new DataOutputStream(socket.getOutputStream());
+            input = new DataInputStream(socket.getInputStream());
+            setScreen();
+        } catch (IOException e){
+
+        }
+
     }
 
     // 화면 기본 구성
@@ -158,21 +172,38 @@ public class Room extends JFrame {
         greyPanel.setLayout(null);
 
         // TODO : 여기 서버에서 정보 갖고와야 함
-        // 방 제목
-        JLabel roomTitleTextLabel = new JLabel("[가자미가자미] 님의 방");
-        roomTitleTextLabel.setBounds(12, 8, 200, 24); // 위치와 크기 설정 (이미지 옆)
-        roomTitleTextLabel.setForeground(Color.BLACK);
-        roomTitleTextLabel.setFont(new Font("Dialog", Font.PLAIN, 15));
+        try {
+            output.writeUTF("ACTION=RoomInfo&0");
+            output.flush();
 
-        // 기타 정보
-        JLabel etcTextLabel = new JLabel("한국어    끝말잇기    참여자 1 / 4    라운드 3    30초");
-        etcTextLabel.setBounds(620, 8, 400, 24); // 위치와 크기 설정
-        etcTextLabel.setForeground(Color.BLACK);
-        etcTextLabel.setFont(new Font("Dialog", Font.PLAIN, 15));
+            String receivedData = input.readUTF();
+            if (receivedData.contains("RoomInfo")) {
+                String[] result = receivedData.split("&");
 
-        greyPanel.add(roomTitleTextLabel);
-        greyPanel.add(etcTextLabel);
-        roomInformationPanel.add(greyPanel);
+                String title = result[2];
+                // 방 제목
+                JLabel roomTitleTextLabel = new JLabel(title);
+                roomTitleTextLabel.setBounds(12, 8, 200, 24); // 위치와 크기 설정 (이미지 옆)
+                roomTitleTextLabel.setForeground(Color.BLACK);
+                roomTitleTextLabel.setFont(new Font("Dialog", Font.PLAIN, 15));
+
+                String info = result[3];
+                // 기타 정보
+                JLabel etcTextLabel = new JLabel("한국어    끝말잇기    " + info);
+                etcTextLabel.setBounds(620, 8, 400, 24); // 위치와 크기 설정
+                etcTextLabel.setForeground(Color.BLACK);
+                etcTextLabel.setFont(new Font("Dialog", Font.PLAIN, 15));
+
+                greyPanel.add(roomTitleTextLabel);
+                greyPanel.add(etcTextLabel);
+                roomInformationPanel.add(greyPanel);
+            }
+
+        } catch (IOException io){
+            System.out.println(io.getMessage());
+        }
+
+
 
     }
 
