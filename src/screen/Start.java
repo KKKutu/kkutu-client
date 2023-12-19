@@ -61,7 +61,7 @@ public class Start extends JFrame {
 
     // 화면 기본 구성
     private void setWindow() {
-        setTitle("Ready to Game");
+        setTitle("Start");
         setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
         setResizable(false);
         setLocationRelativeTo(null);
