@@ -38,7 +38,9 @@ public class ReadyToGame extends JFrame {
     private JPanel addPeopleListPanel;
     private JPanel profilePanel;
     private JPanel roomsPanel;
+    private JPanel roomLengthPanel;
     private JPanel roomListPanel;
+    JScrollPane roomListScrollPane;
 
     private JPanel userListPanel; // 유저 리스트 패널
 
@@ -169,7 +171,7 @@ public class ReadyToGame extends JFrame {
         private void updateRoomList(String[] result, int roomLength) {
 
             // 방 개수 업데이트 하기
-            roomListPanel.removeAll();
+            roomLengthPanel.removeAll();
 
             // 텍스트 레이블 추가
             JLabel textLabel = new JLabel("방 목록 ["+ roomLength + "]");
@@ -177,23 +179,82 @@ public class ReadyToGame extends JFrame {
             textLabel.setForeground(Color.BLACK);
             textLabel.setFont(new Font("Dialog", Font.PLAIN, 15));
 
-            roomListPanel.add(textLabel);
-            roomListPanel.revalidate();
-            roomListPanel.repaint();
-            roomsPanel.add(roomListPanel);
+            roomLengthPanel.add(textLabel);
+            roomLengthPanel.revalidate();
+            roomLengthPanel.repaint();
+            roomsPanel.add(roomLengthPanel);
+
 
             // 방 리스트 업데이트하기
             // result 형식 : ACTION=UpdateRoomList&1&0&test&2&3&30초
             // 순서 roomId / title / playerNum / round / time
-            for (int i=2; i<result.length; i++) {
+
+            roomListPanel.removeAll();
+
+            roomListPanel = new JPanel();
+            roomListPanel.setLayout(new BoxLayout(roomListPanel, BoxLayout.Y_AXIS));
+            roomListPanel.setBackground(Color.decode("#F7F7F7"));
+
+            String waitRoomImagePath = "../image/room/wait_room.png";
+            String playRoomImagePath = "../image/room/play_room.png";
+
+            // 방 리스트 업데이트하기
+            // result 형식 : ACTION=UpdateRoomList&1&0&test&2&3&30초
+            // 순서 roomId / title / playerNum / round / time
+            // 20개의 각 이미지를 추가
+
+            for (int i = 2; i < result.length; i++) {
+
                 String[] roomInfo = result[i].split(",");
                 String roomId = roomInfo[0];
-                String title = roomInfo[1] + "님의 방";
-                String playerNum = roomInfo[2];
-                String round = "라운드 " + roomInfo[3];
-                String time = roomInfo[4] + "초";
+                String title = roomInfo[1];
+                String playerNum = roomInfo[2] + " / "  + roomInfo[3];
+                String roundAndTime = "라운드 " + roomInfo[4] + " / " + roomInfo[5] + "초";
+                String isPlaying = roomInfo[6];
 
+                JPanel rowPanel = new JPanel();
+                rowPanel.setLayout(new BoxLayout(rowPanel, BoxLayout.X_AXIS));
+                rowPanel.setBackground(Color.decode("#F7F7F7"));
+
+                String imgPath;
+                // Wait room 이미지 추가
+                if(isPlaying.equals("false"))
+                    imgPath = "../image/room/wait_room.png";
+                else
+                    imgPath = "../image/room/play_room.png";
+
+                // Wait room 이미지 추가
+                JLabel waitRoomLabel = createImageLabel(imgPath, 0, 0, -1, -1);
+                waitRoomLabel.setBorder(new EmptyBorder(10, 5, 10, 5)); // 상, 좌, 하, 우 여백
+                rowPanel.add(waitRoomLabel);
+
+                JLabel titleText = new JLabel(title);
+                titleText.setBounds(39, 32, 150, 20);
+                titleText.setFont(new Font("Dialog", Font.PLAIN, 18));
+                waitRoomLabel.add(titleText);
+
+                JLabel numText = new JLabel(playerNum);
+                numText.setBounds(272, 34, 100, 20);
+                numText.setFont(new Font("Dialog", Font.PLAIN, 10));
+                waitRoomLabel.add(numText);
+
+                JLabel roundText = new JLabel(roundAndTime);
+                roundText.setBounds(39, 76, 100, 20);
+                roundText.setFont(new Font("Dialog", Font.PLAIN, 14));
+                waitRoomLabel.add(roundText);
+                // Play room 이미지 추가
+//                JLabel playRoomLabel = createImageLabel(playRoomImagePath, 0, 0, -1, -1);
+//                playRoomLabel.setBorder(new EmptyBorder(10, 5, 10, 5)); // 상, 좌, 하, 우 여백
+//                rowPanel.add(playRoomLabel);
+
+                roomListPanel.add(rowPanel);
             }
+
+            roomListScrollPane.setViewportView(roomListPanel);
+            roomListPanel.revalidate();
+            roomListPanel.repaint();
+            roomsPanel.add(roomListScrollPane);
+
         }
     }
 
@@ -395,12 +456,12 @@ public class ReadyToGame extends JFrame {
         int greyPanelHeight = 40;
         int greyPanelX = 10;
         int greyPanelY = 10;
-        roomListPanel = RoundedTitle.createRoundedPanel(greyPanelX, greyPanelY, greyPanelWidth, greyPanelHeight, greyPanelColor, 15);
-        roomListPanel.setLayout(null);
+        roomLengthPanel = RoundedTitle.createRoundedPanel(greyPanelX, greyPanelY, greyPanelWidth, greyPanelHeight, greyPanelColor, 15);
+        roomLengthPanel.setLayout(null);
 
         // 이미지 라벨 생성 및 추가
         JLabel imageLabel = createImageLabel("../image/readytogame/list.png", 10, 8, 24, 24);
-        roomListPanel.add(imageLabel);
+        roomLengthPanel.add(imageLabel);
 
         try {
             output.writeUTF("ACTION=RoomLength");
@@ -415,8 +476,8 @@ public class ReadyToGame extends JFrame {
                 textLabel.setForeground(Color.BLACK);
                 textLabel.setFont(new Font("Dialog", Font.PLAIN, 15));
 
-                roomListPanel.add(textLabel);
-                roomsPanel.add(roomListPanel);
+                roomLengthPanel.add(textLabel);
+                roomsPanel.add(roomLengthPanel);
             }
         } catch (IOException io){
             System.out.println(io.getMessage());
@@ -474,39 +535,87 @@ public class ReadyToGame extends JFrame {
         int panelX = 10;
         int panelY = 10;
 
-        JScrollPane scrollPane = new JScrollPane();
-        scrollPane.setBounds(panelX + 10, panelY + panelHeight + 10, panelWidth - 10, 440);
-        scrollPane.setBorder(null);
-        scrollPane.getViewport().setBackground(Color.decode("#F7F7F7"));
+        roomListScrollPane = new JScrollPane();
+        roomListScrollPane.setBounds(panelX + 10, panelY + panelHeight + 10, panelWidth - 10, 440);
+        roomListScrollPane.setBorder(null);
+        roomListScrollPane.getViewport().setBackground(Color.decode("#F7F7F7"));
 
-        JPanel contentPanel = new JPanel();
-        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
-        contentPanel.setBackground(Color.decode("#F7F7F7"));
+        roomListPanel = new JPanel();
+        roomListPanel.setLayout(new BoxLayout(roomListPanel, BoxLayout.Y_AXIS));
+        roomListPanel.setBackground(Color.decode("#F7F7F7"));
+
 
         String waitRoomImagePath = "../image/room/wait_room.png";
         String playRoomImagePath = "../image/room/play_room.png";
 
-        // 20개의 각 이미지를 추가
-        for (int i = 0; i < 20; i++) {
-            JPanel rowPanel = new JPanel();
-            rowPanel.setLayout(new BoxLayout(rowPanel, BoxLayout.X_AXIS));
-            rowPanel.setBackground(Color.decode("#F7F7F7"));
+        try {
+            output.writeUTF("ACTION=RoomList&");
+            output.flush();
 
-            // Wait room 이미지 추가
-            JLabel waitRoomLabel = createImageLabel(waitRoomImagePath, 0, 0, -1, -1);
-            waitRoomLabel.setBorder(new EmptyBorder(10, 5, 10, 5)); // 상, 좌, 하, 우 여백
-            rowPanel.add(waitRoomLabel);
+            String receivedData = input.readUTF();
+            System.out.println(receivedData);
+            if(receivedData.contains("RoomList")){
+                // 방 리스트 업데이트하기
+                // result 형식 : ACTION=UpdateRoomList&1&0&test&2&3&30초
+                // 순서 roomId / title / playerNum / round / time
+                // 20개의 각 이미지를 추가
+                String[] result = receivedData.split("&");
 
-            // Play room 이미지 추가
-            JLabel playRoomLabel = createImageLabel(playRoomImagePath, 0, 0, -1, -1);
-            playRoomLabel.setBorder(new EmptyBorder(10, 5, 10, 5)); // 상, 좌, 하, 우 여백
-            rowPanel.add(playRoomLabel);
+                for (int i = 2; i < result.length; i++) {
 
-            contentPanel.add(rowPanel);
+                    String[] roomInfo = result[i].split(",");
+                    String roomId = roomInfo[0];
+                    String title = roomInfo[1];
+                    String playerNum = roomInfo[2] + " / "  + roomInfo[3];
+                    String roundAndTime = "라운드 " + roomInfo[4] + " / " + roomInfo[5] + "초";
+                    String isPlaying = roomInfo[6];
+
+                    JPanel rowPanel = new JPanel();
+                    rowPanel.setLayout(new BoxLayout(rowPanel, BoxLayout.X_AXIS));
+                    rowPanel.setBackground(Color.decode("#F7F7F7"));
+
+
+                    String imgPath;
+                    // Wait room 이미지 추가
+                    if(isPlaying.equals("false"))
+                        imgPath = "../image/room/wait_room.png";
+                    else
+                        imgPath = "../image/room/play_room.png";
+
+                    JLabel waitRoomLabel = createImageLabel(imgPath, 0, 0, -1, -1);
+                    waitRoomLabel.setBorder(new EmptyBorder(10, 5, 10, 5)); // 상, 좌, 하, 우 여백
+                    rowPanel.add(waitRoomLabel);
+
+                    JLabel titleText = new JLabel(title);
+                    titleText.setBounds(39, 32, 150, 20);
+                    titleText.setFont(new Font("Dialog", Font.PLAIN, 18));
+                    waitRoomLabel.add(titleText);
+
+                    JLabel numText = new JLabel(playerNum);
+                    numText.setBounds(272, 34, 100, 20);
+                    numText.setFont(new Font("Dialog", Font.PLAIN, 10));
+                    waitRoomLabel.add(numText);
+
+                    JLabel roundText = new JLabel(roundAndTime);
+                    roundText.setBounds(39, 76, 100, 20);
+                    roundText.setFont(new Font("Dialog", Font.PLAIN, 14));
+                    waitRoomLabel.add(roundText);
+
+                    // Play room 이미지 추가
+//                    JLabel playRoomLabel = createImageLabel(playRoomImagePath, 0, 0, -1, -1);
+//                    playRoomLabel.setBorder(new EmptyBorder(10, 5, 10, 5)); // 상, 좌, 하, 우 여백
+//                    rowPanel.add(playRoomLabel);
+
+                    roomListPanel.add(rowPanel);
+                }
+
+                roomListScrollPane.setViewportView(roomListPanel);
+                roomsPanel.add(roomListScrollPane);
+            }
+        } catch (IOException io){
+            System.out.println(io.getMessage());
         }
 
-        scrollPane.setViewportView(contentPanel);
-        roomsPanel.add(scrollPane);
     }
 
     // 아이디 보여주기
@@ -785,7 +894,6 @@ public class ReadyToGame extends JFrame {
                     output.writeUTF("ACTION=CreateRoom&" + selectedRoomTitle  + "&" + selectedPlayerNum  + "&" + selectedRoundNum  + "&"
                             + selectedRoundTime);
                     output.flush();
-//                    String data = input.readUTF();
 
                     // 다이얼로그 닫기
                     dialog.dispose();
