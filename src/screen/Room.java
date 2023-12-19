@@ -64,7 +64,7 @@ public class Room extends JFrame {
         addPanels(); // 메뉴 패널, 방 정보 패널, 사람들 패널 추가
 
         // TODO : 방장이면 1, 일반 참가자면 2
-        addManagerMenuContents(2); // 메뉴 패널의 내용 채우기
+        addManagerMenuContents(1); // 메뉴 패널의 내용 채우기
 
         // 방 정보 패널의 내용 채우기
         addRoomInformationContents();
@@ -122,6 +122,11 @@ public class Room extends JFrame {
                    public void mouseClicked(MouseEvent e) {
                        // TODO : 여기 기능 구현하기
                        System.out.println("방장 : 게임 시작하기");
+                       // 상위 프레임 닫기
+                       dispose();
+
+                       // Room 클래스 실행
+                       new Game(socket);
                    }
                }
             );
