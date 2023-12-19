@@ -26,7 +26,7 @@ public class Room extends JFrame {
     private static final Color MENU_PANEL_COLOR = Color.decode("#F7F7F7");
     private static final Color LINE_COLOR = Color.decode("#E0DEDE");
     private static final Color ROOM_INFORMATION_PANEL_COLOR = Color.decode("#F7F7F7");
-    private static final Color PEOPLE_PANEL_COLOR = Color.decode("#2D4AE1");
+    private static final Color PEOPLE_PANEL_COLOR = Color.decode("#F7F7F7");
     private static final int WINDOW_WIDTH = 1000;
     private static final int WINDOW_HEIGHT = 600;
 
@@ -69,6 +69,9 @@ public class Room extends JFrame {
         // 방 정보 패널의 내용 채우기
         addRoomInformationContents();
 
+        // 사람을 패널의 내용 채우기
+        addPeople();
+
         setVisible(true); // 해당 프레임 보이게
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // 화면 닫으면 프로그램 종료
     }
@@ -77,7 +80,7 @@ public class Room extends JFrame {
     private void addPanels() {
         menuPanel = createPanel(0, 0, WINDOW_WIDTH, 50, MENU_PANEL_COLOR);
         roomInformationPanel = createPanel(0, 52, WINDOW_WIDTH, 60, ROOM_INFORMATION_PANEL_COLOR);
-        peoplePanel = createPanel(0, 92, WINDOW_WIDTH, WINDOW_HEIGHT - 92, PEOPLE_PANEL_COLOR);
+        peoplePanel = createPanel(0, 112, WINDOW_WIDTH, WINDOW_HEIGHT - 112, PEOPLE_PANEL_COLOR);
     }
 
     // 메뉴 패널에 해당하는 콘텐츠 채우기
@@ -171,7 +174,6 @@ public class Room extends JFrame {
         JPanel greyPanel = RoundedTitle.createRoundedPanel(greyPanelX, greyPanelY, greyPanelWidth, greyPanelHeight, greyPanelColor, 15);
         greyPanel.setLayout(null);
 
-        // TODO : 여기 서버에서 정보 갖고와야 함
         try {
             output.writeUTF("ACTION=RoomInfo&0");
             output.flush();
@@ -182,7 +184,7 @@ public class Room extends JFrame {
 
                 String title = result[2];
                 // 방 제목
-                JLabel roomTitleTextLabel = new JLabel(title);
+                JLabel roomTitleTextLabel = new JLabel("[" + title + "]");
                 roomTitleTextLabel.setBounds(12, 8, 200, 24); // 위치와 크기 설정 (이미지 옆)
                 roomTitleTextLabel.setForeground(Color.BLACK);
                 roomTitleTextLabel.setFont(new Font("Dialog", Font.PLAIN, 15));
@@ -203,11 +205,52 @@ public class Room extends JFrame {
             System.out.println(io.getMessage());
         }
 
-
-
     }
 
+    // 사람들 패널
+    private void addPeople() {
+        // 사람들 추가
+        addPersonPanel("가자미", 1, 0);    // 1: 방장
+        addPersonPanel("가자미미", 2, 1);  // 2: 참가자
+        addPersonPanel("가보자고", 2, 2);  // 2: 참가자
+        addPersonPanel("네프끝내자", 2, 3); // 2: 참가자
+    }
 
+    private void addPersonPanel(String id, int isManager, int position) {
+        int greyPanelX = 23 + (220 + 20) * position;
+        int greyPanelY = 10;
+        JPanel personPanel = createPersonPanel(greyPanelX, greyPanelY, id, isManager);
+        peoplePanel.add(personPanel);
+    }
+
+    private JPanel createPersonPanel(int x, int y, String id, int isManager) {
+        Color greyPanelColor = Color.decode("#E4E4E4");
+        int greyPanelWidth = 220;
+        int greyPanelHeight = 170;
+        JPanel personPanel = RoundedTitle.createRoundedPanel(x, y, greyPanelWidth, greyPanelHeight, greyPanelColor, 15);
+        personPanel.setLayout(null);
+
+        // 이미지 레이블 추가
+        JLabel imageLabel = createImageLabel("../image/profile/1.png", 20, 25, 80, 67);
+        personPanel.add(imageLabel);
+
+        // 텍스트 레이블 추가
+        boolean isLeader = isManager == 1;
+        JLabel textLabel = new JLabel(isLeader ? "방장" : "준비");
+        textLabel.setForeground(isLeader ? Color.RED : Color.BLUE);
+        textLabel.setFont(new Font("Dialog", Font.BOLD, 20));
+        textLabel.setBounds(160, 20, 40, 24);
+        personPanel.add(textLabel);
+
+        // ID 레이블 추가
+        JLabel idLabel = new JLabel(id);
+        idLabel.setForeground(Color.BLACK);
+        idLabel.setFont(new Font("Dialog", Font.PLAIN, 18));
+        idLabel.setBounds(25, 127, 100, 24);
+        personPanel.add(idLabel);
+
+        return personPanel;
+    }
 
     // TODO : 나중에 여기 하위 메소드 코드 리팩토링 시 util 패키지에 넣고 static 클래스로 만들기
 
