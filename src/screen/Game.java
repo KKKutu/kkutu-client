@@ -9,6 +9,9 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.net.Socket;
 import java.util.Objects;
 import javax.swing.BorderFactory;
@@ -23,6 +26,9 @@ import util.Audio;
 public class Game extends JFrame {
 
     private Socket socket;
+    private DataOutputStream output;
+    private DataInputStream input;
+    private Long roomId;
     private Audio audio;
     private JLabel countdownLabel;
     private JLabel timerLabel;
@@ -52,9 +58,19 @@ public class Game extends JFrame {
     private String[] fiveLengthWordArr = {"아이스크림", "크리스마스", "아메리카노", "오케스트라", "코인노래방"};
     private String[] selectedWordArray; // 선택된 단어를 글자별로 저장하는 배열
 
-    public Game(Socket socket, Audio audio) {
+    public Game(Socket socket, Audio audio, Thread prevThread, Long roomId) {
+        prevThread.interrupt();
+        this.roomId = roomId;
         this.socket = socket;
         this.audio = audio;
+
+        try {
+            output = new DataOutputStream(socket.getOutputStream());
+            input = new DataInputStream(socket.getInputStream());
+        }
+        catch (IOException e){
+            System.out.println(e.getMessage());
+        }
 
         // 로비 음악 끝
         audio.stopAudio("lobby");
@@ -117,8 +133,19 @@ public class Game extends JFrame {
 
         add(createTimerImg()); // 타이머 이미지
 
-        // 사용자 패널 추가
-        add(personPanel(4));
+        try{
+            output.writeUTF("ACTION=InGameUserLength&" + roomId);
+            output.flush();
+
+            String receivedData = input.readUTF();
+            int length = Integer.parseInt(receivedData.split("&")[1]);
+            // 사용자 패널 추가
+            add(personPanel(length));
+        }
+        catch (IOException e){
+            System.out.println(e.getMessage());
+        }
+
 
         add(createBackground()); // 배경 (마지막에 넣기)
     }
@@ -153,41 +180,54 @@ public class Game extends JFrame {
         personPanels = new JPanel[personNum]; // 패널 배열 초기화
         scoreLabels = new JLabel[personNum]; // 점수 라벨 배열 초기화
 
-        for (int i = 0; i < personNum; i++) {
-            // 둥근 모서리 패널 생성
-            JPanel person = RoundedPersonPanel.createRoundedPanel(38 + i * (162 + 34), 0, 162, 223, Color.decode("#D8D8D8"), 10);
-            person.setLayout(null);
+        try {
+            output.writeUTF("ACTION=InGameUserList&" + roomId);
+            output.flush();
 
-            // 이미지 라벨의 위치 계산
-            int imageLabelSize = 150;
-            int imageLabelX = (person.getWidth() - imageLabelSize) / 2;
-            int imageLabelY = (person.getHeight() - imageLabelSize) / 2 - 40; // 약간 위쪽으로 조정
+            String receivedData = input.readUTF();
+            String[] users = receivedData.split("&");
 
-            // 이미지 라벨 추가
-            JLabel imageLabel = createImageLabel("../image/profile/1.png", imageLabelX, imageLabelY, imageLabelSize, imageLabelSize);
-            person.add(imageLabel);
+            for (int i = 1; i < users.length; i++) {
+                String name = users[i].split(",")[1];
+                // 둥근 모서리 패널 생성
+                JPanel person = RoundedPersonPanel.createRoundedPanel(38 + (i-1) * (162 + 34), 0, 162, 223, Color.decode("#D8D8D8"), 10);
+                person.setLayout(null);
 
-            // ID 라벨 추가
-            JLabel idLabel = new JLabel("닉네임22", SwingConstants.CENTER);
-            idLabel.setFont(new Font("Dialog", Font.BOLD, 15));
-            idLabel.setForeground(Color.BLACK);
-            int idLabelWidth = 100;
-            int idLabelX = (person.getWidth() - idLabelWidth) / 2;
-            idLabel.setBounds(idLabelX, 132, idLabelWidth, 20);
-            person.add(idLabel);
+                // 이미지 라벨의 위치 계산
+                int imageLabelSize = 150;
+                int imageLabelX = (person.getWidth() - imageLabelSize) / 2;
+                int imageLabelY = (person.getHeight() - imageLabelSize) / 2 - 40; // 약간 위쪽으로 조정
 
-            // 점수 라벨 추가
-            JLabel scoreLabel = new JLabel("00000");
-            scoreLabel.setFont(new Font("Dialog", Font.BOLD, 40));
-            scoreLabel.setForeground(Color.BLACK);
-            scoreLabel.setBounds(16, 161, 162, 40);
-            person.add(scoreLabel);
+                // 이미지 라벨 추가
+                JLabel imageLabel = createImageLabel("../image/profile/1.png", imageLabelX, imageLabelY, imageLabelSize, imageLabelSize);
+                person.add(imageLabel);
 
-            panel.add(person); // 생성된 패널을 메인 패널에 추가
-            personPanels[i] = person; // 여기에 추가: 패널을 배열에 저장
-            scoreLabels[i] = scoreLabel; // 점수 라벨을 배열에 저장
+                // ID 라벨 추가
+                JLabel idLabel = new JLabel(name, SwingConstants.CENTER);
+                idLabel.setFont(new Font("Dialog", Font.BOLD, 15));
+                idLabel.setForeground(Color.BLACK);
+                int idLabelWidth = 100;
+                int idLabelX = (person.getWidth() - idLabelWidth) / 2;
+                idLabel.setBounds(idLabelX, 132, idLabelWidth, 20);
+                person.add(idLabel);
+
+                // 점수 라벨 추가
+                JLabel scoreLabel = new JLabel("00000");
+                scoreLabel.setFont(new Font("Dialog", Font.BOLD, 40));
+                scoreLabel.setForeground(Color.BLACK);
+                scoreLabel.setBounds(16, 161, 162, 40);
+                person.add(scoreLabel);
+
+                panel.add(person); // 생성된 패널을 메인 패널에 추가
+                personPanels[i-1] = person; // 여기에 추가: 패널을 배열에 저장
+                scoreLabels[i-1] = scoreLabel; // 점수 라벨을 배열에 저장
+            }
+
+
         }
-
+        catch (IOException e){
+            System.out.println(e.getMessage());
+        }
         updatePanelUI(); // 초기 UI 업데이트
         return panel;
     }
