@@ -356,8 +356,7 @@ public class ReadyToGame extends JFrame {
             @Override
             public void mouseClicked(MouseEvent e) {
                 // 게임 소개, 개발자 정보 다이얼로그 보여주기
-                System.out.println("게임 소개, 개발자 정보 다이얼로그 보여주기");
-//                showInformationDialog();
+                showInformationDialog();
             }
         });
 
@@ -840,6 +839,38 @@ public class ReadyToGame extends JFrame {
 
         // 확인 버튼
         dialog.add(confirmBtn); // 부착
+        dialog.setVisible(true); // 다이얼로그 보이기
+    }
+
+    // 정보 보기 클릭 시 다이얼로그
+    private void showInformationDialog() {
+        JDialog dialog = new JDialog(ReadyToGame.this, "개발자 정보 보기", true); // true로 설정하여 모달로 만듦
+        dialog.setLayout(null); // 컴포넌트들의 절대 위치 설정을 위해 레이아웃 매니저 비활성화
+        dialog.setTitle("개발자 정보 보기"); // 다이얼로그 이름
+        dialog.setSize(300, 220); // 다이얼로그 크기 설정
+        dialog.setResizable(false);
+        dialog.setLocationRelativeTo(null); // 화면 중앙에 위치
+
+        // 강민서 라벨
+        JLabel label1 = new JLabel("강민서");
+        label1.setFont(CustomFont.getPlainFont(12)); // 폰트 설정
+        label1.setBounds(185, 35, 100, 30); // x, y, 넓이, 높이
+        dialog.add(label1); // 부착
+
+        // 김태하 라벨
+        JLabel label2 = new JLabel("김태하");
+        label2.setFont(CustomFont.getPlainFont(12)); // 폰트 설정
+        label2.setBounds(185, 119, 100, 30); // x, y, 넓이, 높이
+        dialog.add(label2); // 부착
+
+        // 강민서 이미지
+        JLabel minseoImg = CustomImage.createImageLabel("../image/profile/minseo.png", 90, 16, 70, 70); // 적절한 넓이, 높이 지정
+        dialog.add(minseoImg);
+
+        // 김태하 이미지
+        JLabel taeImg = CustomImage.createImageLabel("../image/profile/taeha.png", 90, 100, 70, 70); // 적절한 넓이, 높이 지정
+        dialog.add(taeImg); // 부착
+
         dialog.setVisible(true); // 다이얼로그 보이기
     }
 

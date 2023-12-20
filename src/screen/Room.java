@@ -2,10 +2,15 @@ package screen;
 
 import static component.RoundedMenu.createRoundedPanel;
 
+import component.RoundedButton;
+import component.RoundedIdField;
+import component.RoundedPwField;
 import component.RoundedTitle;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.DataInputStream;
@@ -19,6 +24,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import util.Audio;
 import javax.swing.*;
+import util.CustomFont;
+import util.CustomImage;
 
 public class Room extends JFrame {
 
@@ -168,6 +175,7 @@ public class Room extends JFrame {
             infoGreyPanel.setLayout(null);
 
             String title = result[2];
+
             // 방 제목
             JLabel roomTitleTextLabel = new JLabel("[" + title + "]");
             roomTitleTextLabel.setBounds(12, 8, 200, 24); // 위치와 크기 설정 (이미지 옆)
@@ -175,6 +183,7 @@ public class Room extends JFrame {
             roomTitleTextLabel.setFont(new Font("Dialog", Font.PLAIN, 15));
 
             String info = result[3];
+
             // 기타 정보
             JLabel etcTextLabel = new JLabel("한국어    끝말잇기    " + info);
             etcTextLabel.setBounds(620, 8, 400, 24); // 위치와 크기 설정
@@ -189,7 +198,6 @@ public class Room extends JFrame {
 
             infoGreyPanel.revalidate();
             infoGreyPanel.repaint();
-
 
             roomInformationPanel.add(infoGreyPanel);
         }
@@ -221,9 +229,7 @@ public class Room extends JFrame {
             int greyPanelX = 23 + (220 + 20) * position;
             int greyPanelY = 10;
 
-
             personPanel = createPersonPanel2(greyPanelX, greyPanelY, id, isManager);
-
 
             peoplePanel.add(personPanel);
         }
@@ -235,17 +241,17 @@ public class Room extends JFrame {
             personPanel = RoundedTitle.createRoundedPanel(x, y, greyPanelWidth, greyPanelHeight, greyPanelColor, 15);
             personPanel.setLayout(null);
 
-            // 이미지 레이블 추가
+            // 이미지 라벨 추가
             JLabel imageLabel = createImageLabel("../image/profile/1.png", 20, 25, 80, 67);
             personPanel.add(imageLabel);
 
-            // 텍스트 레이블 추가
+            // 텍스트 라벨
             boolean isLeader = isManager == 1;
-            JLabel textLabel = new JLabel(isLeader ? "방장" : "준비");
-            textLabel.setForeground(isLeader ? Color.RED : Color.BLUE);
+            JLabel textLabel = new JLabel(isLeader ? "방장" : "준비"); // 값에 따라 보이는 텍스트 다름
+            textLabel.setForeground(isLeader ? Color.RED : Color.BLUE); // 값에 따라 보이는 텍스트 섹 다름
             textLabel.setFont(new Font("Dialog", Font.BOLD, 20));
             textLabel.setBounds(160, 20, 40, 24);
-            personPanel.add(textLabel);
+            personPanel.add(textLabel); // 부착
 
             // ID 레이블 추가
             JLabel idLabel = new JLabel(id);
@@ -254,18 +260,19 @@ public class Room extends JFrame {
             idLabel.setBounds(25, 127, 100, 24);
             personPanel.add(idLabel);
 
-            return personPanel;
+            return personPanel; // 부착
         }
 
     }
+
     // 화면 기본 구성
     private void setWindow() {
-        setTitle("Room");
-        setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
-        setResizable(false);
-        setLocationRelativeTo(null);
-        setLayout(null);
-        getContentPane().setBackground(Color.decode("#F7F7F7"));
+        setTitle("방"); // 프레임의 제목 설정
+        setSize(WINDOW_WIDTH, WINDOW_HEIGHT); // 프레임 크기 설정
+        setResizable(false); // 사용자가 화면 크기 변경 불가
+        setLocationRelativeTo(null); // 해당 프레임을 화면의 중앙에 위치
+        setLayout(null); // 컴포넌트들의 절대 위치 설정을 위해 레이아웃 매니저 비활성화
+        getContentPane().setBackground(Color.decode("#F7F7F7")); // 프레임의 배경색
     }
 
     // UI 설정
@@ -273,8 +280,6 @@ public class Room extends JFrame {
         setWindow(); // 화면 기본 구성
         addLinePanel(); // 패널 구분선 그리기
         addPanels(); // 메뉴 패널, 방 정보 패널, 사람들 패널 추가
-
-        // TODO : 방장이면 1, 일반 참가자면 2
         addManagerMenuContents(1); // 메뉴 패널의 내용 채우기
 
         // 방 정보 패널의 내용 채우기
@@ -314,8 +319,7 @@ public class Room extends JFrame {
             @Override
             public void mouseClicked(MouseEvent e) {
                 // 게임 소개, 개발자 정보 다이얼로그 보여주기
-                System.out.println("게임 소개, 개발자 정보 다이얼로그 보여주기");
-//                showInformationDialog();
+                showInformationDialog();
             }
         });
 
@@ -331,8 +335,8 @@ public class Room extends JFrame {
             managerStartGamePanel.addMouseListener(new MouseAdapter() {
                    @Override
                    public void mouseClicked(MouseEvent e) {
-                       // TODO : 여기 기능 구현하기
-                       System.out.println("방장 : 게임 시작하기");
+
+                       System.out.println("게임 시작하기");
 
                        updateThread.setStopThread();
 
@@ -359,34 +363,8 @@ public class Room extends JFrame {
                }
             );
 
-            managerOutPanel.addMouseListener(new MouseAdapter() {
-                     @Override
-                     public void mouseClicked(MouseEvent e) {
-                         // TODO : 여기 기능 구현하기
-                         System.out.println("방장 : 방 나가기");
-                     }
-                 }
-            );
-
             menuPanel.add(managerStartGamePanel);
-            menuPanel.add(managerOutPanel);
         }
-
-        else { // 참가자인 경우
-            addCenteredTextToPanel(participantOutPanel, "나가기", 20);
-
-            participantOutPanel.addMouseListener(new MouseAdapter() {
-                     @Override
-                     public void mouseClicked(MouseEvent e) {
-                         // TODO : 여기 기능 구현하기
-                         System.out.println("참가자 : 방 나가기");
-                     }
-                 }
-            );
-
-            menuPanel.add(participantOutPanel);
-        }
-
 
     }
 
@@ -577,6 +555,38 @@ public class Room extends JFrame {
             g.setColor(LINE_COLOR);
             g.fillRect(0, 50, 1000, 2);
         }
+    }
+
+    // 정보 보기 클릭 시 다이얼로그
+    private void showInformationDialog() {
+        JDialog dialog = new JDialog(Room.this, "개발자 정보 보기", true); // true로 설정하여 모달로 만듦
+        dialog.setLayout(null); // 컴포넌트들의 절대 위치 설정을 위해 레이아웃 매니저 비활성화
+        dialog.setTitle("개발자 정보 보기"); // 다이얼로그 이름
+        dialog.setSize(300, 220); // 다이얼로그 크기 설정
+        dialog.setResizable(false);
+        dialog.setLocationRelativeTo(null); // 화면 중앙에 위치
+
+        // 강민서 라벨
+        JLabel label1 = new JLabel("강민서");
+        label1.setFont(CustomFont.getPlainFont(12)); // 폰트 설정
+        label1.setBounds(185, 35, 100, 30); // x, y, 넓이, 높이
+        dialog.add(label1); // 부착
+
+        // 김태하 라벨
+        JLabel label2 = new JLabel("김태하");
+        label2.setFont(CustomFont.getPlainFont(12)); // 폰트 설정
+        label2.setBounds(185, 119, 100, 30); // x, y, 넓이, 높이
+        dialog.add(label2); // 부착
+
+        // 강민서 이미지
+        JLabel minseoImg = CustomImage.createImageLabel("../image/profile/minseo.png", 90, 16, 70, 70); // 적절한 넓이, 높이 지정
+        dialog.add(minseoImg);
+
+        // 김태하 이미지
+        JLabel taeImg = CustomImage.createImageLabel("../image/profile/taeha.png", 90, 100, 70, 70); // 적절한 넓이, 높이 지정
+        dialog.add(taeImg); // 부착
+
+        dialog.setVisible(true); // 다이얼로그 보이기
     }
 
 }
