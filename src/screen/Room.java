@@ -13,6 +13,11 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Objects;
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import util.Audio;
 import javax.swing.*;
 
 public class Room extends JFrame {
@@ -35,11 +40,17 @@ public class Room extends JFrame {
     private JPanel roomInformationPanel;
     private JPanel peoplePanel;
 
+    public Audio audio = null;
+
+    // 생성자에서 UI 설정
+    // public Room(Socket socket, Audio audio) {
+
     private JPanel infoGreyPanel;
 
     // 생성자에서 UI 설정
     public Room(Socket socket, Long roomId) {
         this.socket = socket;
+        this.audio = audio;
         try {
             this.roomId = roomId;
             output = new DataOutputStream(socket.getOutputStream());
@@ -289,7 +300,7 @@ public class Room extends JFrame {
                        dispose();
 
                        // Room 클래스 실행
-                       new Game(socket);
+                       new Game(socket, audio);
                    }
                }
             );

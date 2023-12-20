@@ -35,7 +35,6 @@ public class Start extends JFrame {
     // 생성자에서 UI 설정
     public Start() {
         try {
-
             socket = new Socket(serverAddress, serverPort);
 
             output = new DataOutputStream(socket.getOutputStream());
