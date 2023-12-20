@@ -505,18 +505,21 @@ public class ReadyToGame extends JFrame {
             output.writeUTF("ACTION=RoomLength");
             output.flush();
 
-            String receivedData = input.readUTF();
-            if(receivedData.contains("RoomLength")){
-                int roomLength = Integer.parseInt(receivedData.split("&")[1]);
-                // 텍스트 레이블 추가
-                JLabel textLabel = new JLabel("방 목록 ["+ roomLength + "]");
-                textLabel.setBounds(40, 8, 200, 24); // 위치와 크기 설정 (이미지 옆)
-                textLabel.setForeground(Color.BLACK);
-                textLabel.setFont(new Font("Dialog", Font.PLAIN, 15));
+            synchronized (input){
+                String receivedData = input.readUTF();
+                if(receivedData.contains("RoomLength")){
+                    int roomLength = Integer.parseInt(receivedData.split("&")[1]);
+                    // 텍스트 레이블 추가
+                    JLabel textLabel = new JLabel("방 목록 ["+ roomLength + "]");
+                    textLabel.setBounds(40, 8, 200, 24); // 위치와 크기 설정 (이미지 옆)
+                    textLabel.setForeground(Color.BLACK);
+                    textLabel.setFont(new Font("Dialog", Font.PLAIN, 15));
 
-                roomLengthPanel.add(textLabel);
-                roomsPanel.add(roomLengthPanel);
+                    roomLengthPanel.add(textLabel);
+                    roomsPanel.add(roomLengthPanel);
+                }
             }
+
         } catch (IOException io){
             System.out.println(io.getMessage());
         }
@@ -676,6 +679,7 @@ public class ReadyToGame extends JFrame {
             output.flush();
 
             String receivedData = input.readUTF();
+            System.out.println("유저 이름 가져와지는거 확인" + receivedData);
             if(receivedData.contains("UserName")){
 
                 String userName = receivedData.split("&")[1];
