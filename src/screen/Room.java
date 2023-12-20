@@ -40,6 +40,8 @@ public class Room extends JFrame {
     private JPanel roomInformationPanel;
     private JPanel peoplePanel;
 
+    private JPanel personPanel;
+
     public Audio audio = null;
 
     // 생성자에서 UI 설정
@@ -63,13 +65,6 @@ public class Room extends JFrame {
             updateThread = new UpdateThread();
             updateThread.start();
 
-            try {
-                output.writeUTF("ACTION=EnterRoom&");
-                output.flush();
-            }
-            catch (IOException e){
-
-            }
         } catch (IOException e){
 
         }
@@ -81,6 +76,13 @@ public class Room extends JFrame {
 
         @Override
         public void run() {
+            try {
+                output.writeUTF("ACTION=EnterRoom&" + roomId);
+                output.flush();
+            }
+            catch (IOException e){
+
+            }
             while (isRunning) {
                 try {
                     // 서버에 업데이트 요청
@@ -104,13 +106,9 @@ public class Room extends JFrame {
                                     SwingUtilities.invokeLater(() -> updateRoomInfo(messageParts));
                                     break;
                                 }
-                                case "UserList": {
+                                case "PeopleNum": {
                                     System.out.println("UserList : " + inputLine);
                                     SwingUtilities.invokeLater(() -> updateUserList(messageParts));
-                                    break;
-                                }
-                                case "EnterRoom": {
-                                    System.out.println("EnterRoom : " + inputLine);
                                     break;
                                 }
                             }
@@ -172,15 +170,11 @@ public class Room extends JFrame {
 
         private void updateUserList(String[] userList){
 
-
-
-            for(int i=1; i<userList.length; i++){
+            for(int i=2; i<userList.length; i++){
                 String[] userInfo = userList[i].split(",");
                 String name = userInfo[1];
 
-
-
-                if(i==1)
+                if(i==2)
                     addPersonPanel2(name, 1, 0);
                 else
                     addPersonPanel2(name, 2, 0);
@@ -192,7 +186,10 @@ public class Room extends JFrame {
         private void addPersonPanel2(String id, int isManager, int position) {
             int greyPanelX = 23 + (220 + 20) * position;
             int greyPanelY = 10;
-            JPanel personPanel = createPersonPanel(greyPanelX, greyPanelY, id, isManager);
+            personPanel.removeAll();
+            personPanel = createPersonPanel2(greyPanelX, greyPanelY, id, isManager);
+            personPanel.revalidate();
+            personPanel.repaint();
             peoplePanel.add(personPanel);
         }
 
@@ -200,7 +197,7 @@ public class Room extends JFrame {
             Color greyPanelColor = Color.decode("#E4E4E4");
             int greyPanelWidth = 220;
             int greyPanelHeight = 170;
-            JPanel personPanel = RoundedTitle.createRoundedPanel(x, y, greyPanelWidth, greyPanelHeight, greyPanelColor, 15);
+            personPanel = RoundedTitle.createRoundedPanel(x, y, greyPanelWidth, greyPanelHeight, greyPanelColor, 15);
             personPanel.setLayout(null);
 
             // 이미지 레이블 추가
@@ -428,7 +425,7 @@ public class Room extends JFrame {
     private void addPersonPanel(String id, int isManager, int position) {
         int greyPanelX = 23 + (220 + 20) * position;
         int greyPanelY = 10;
-        JPanel personPanel = createPersonPanel(greyPanelX, greyPanelY, id, isManager);
+        personPanel = createPersonPanel(greyPanelX, greyPanelY, id, isManager);
         peoplePanel.add(personPanel);
     }
 
