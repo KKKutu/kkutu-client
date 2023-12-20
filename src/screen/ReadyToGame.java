@@ -65,6 +65,24 @@ public class ReadyToGame extends JFrame {
         }
     }
 
+    // 생성자에서 기본 설정
+    public ReadyToGame(Socket socket, Thread thread) { // 소켓 받기
+        thread.interrupt();
+        audio.playAudio("lobby"); // 로비 음악 재생
+        this.socket = socket; // 소켓 연결
+        try {
+            output = new DataOutputStream(socket.getOutputStream()); // 출력 스트림 생성
+            input = new DataInputStream(socket.getInputStream()); // 입력 스트림 생성
+            setScreen(); // UI 설정
+
+            // UpdateThread 시작
+            updateThread = new UpdateThread();
+            updateThread.start();
+        } catch (IOException io) { // I/O 에러 예외 처리
+            System.out.println(io.getMessage());
+        }
+    }
+
     // 새로운 스레드 클래스 추가
     private class UpdateThread extends Thread {
         volatile boolean isRunning = true;
