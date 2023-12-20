@@ -170,26 +170,35 @@ public class Room extends JFrame {
 
         private void updateUserList(String[] userList){
 
+            peoplePanel.removeAll();
+            personPanel.removeAll();
+
             for(int i=2; i<userList.length; i++){
                 String[] userInfo = userList[i].split(",");
                 String name = userInfo[1];
-
+                System.out.println("updateUserList :: " + name);
                 if(i==2)
                     addPersonPanel2(name, 1, 0);
                 else
-                    addPersonPanel2(name, 2, 0);
+                    addPersonPanel2(name, 2, i-2);
             }
 
+            peoplePanel.revalidate();
+            peoplePanel.repaint();
+
+            personPanel.revalidate();
+            personPanel.repaint();
 
         }
 
         private void addPersonPanel2(String id, int isManager, int position) {
             int greyPanelX = 23 + (220 + 20) * position;
             int greyPanelY = 10;
-            personPanel.removeAll();
+
+
             personPanel = createPersonPanel2(greyPanelX, greyPanelY, id, isManager);
-            personPanel.revalidate();
-            personPanel.repaint();
+
+
             peoplePanel.add(personPanel);
         }
 
