@@ -10,13 +10,12 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.Objects;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import util.CustomFont;
+import util.CustomImage;
 
 public class Start extends JFrame {
 
@@ -57,7 +56,7 @@ public class Start extends JFrame {
 
     // 화면 기본 구성
     private void setWindow() {
-        setTitle("Start"); // 프레임의 제목 설정
+        setTitle("게임 시작 화면"); // 프레임의 제목 설정
         setSize(WINDOW_WIDTH, WINDOW_HEIGHT); // 프레임 크기 설정
         setResizable(false); // 사용자가 화면 크기 변경 불가
         setLocationRelativeTo(null); // 해당 프레임을 화면의 중앙에 위치
@@ -73,31 +72,14 @@ public class Start extends JFrame {
         add(createSignupBtn()); // 회원가입 버튼
     }
 
-    // 이미지 아이콘 로딩
-    private ImageIcon loadIcon(String path) {
-        return new ImageIcon(
-                Objects.requireNonNull(getClass().getResource(path))
-        );
-    }
-
-    // 이미지를 라벨로
-    private JLabel createImageLabel(String imagePath, int x, int y, int width, int height) {
-        JLabel imgLabel = new JLabel();
-        ImageIcon icon = loadIcon(imagePath);
-        imgLabel.setIcon(icon);
-        imgLabel.setBounds(x, y, width, height);
-        imgLabel.setHorizontalAlignment(JLabel.CENTER);
-        return imgLabel;
-    }
-
     // 상위 끄투 코리아 로고
     public JLabel createLogo() {
-        return createImageLabel("../image/start/logo.png", 42, 46, 214, 44); // 적절한 넓이, 높이 지정
+        return CustomImage.createImageLabel("../image/start/logo.png", 42, 46, 214, 44); // 적절한 넓이, 높이 지정
     }
 
     // 중간 끄투 배경 이미지
     public JLabel createKkutuBg() {
-        return createImageLabel("../image/start/main_background.png", 0, 143, 1000, 313); // 적절한 넓이, 높이 지정
+        return CustomImage.createImageLabel("../image/start/main_background.png", 0, 143, 1000, 313); // 적절한 넓이, 높이 지정
     }
 
     // 로그인, 회원가입 버튼의 공통적인 요소들
