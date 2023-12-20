@@ -48,7 +48,8 @@ public class Room extends JFrame {
     private JPanel infoGreyPanel;
 
     // 생성자에서 UI 설정
-    public Room(Socket socket, Long roomId, Audio audio) {
+    public Room(Socket socket, Long roomId, Audio audio, Thread prevThread) {
+        prevThread.interrupt();
         this.socket = socket;
         this.audio = audio;
         try {
@@ -399,7 +400,7 @@ public class Room extends JFrame {
             output.flush();
             System.out.println("UserList를 요청했어용");
             String receivedData = input.readUTF();
-
+            System.out.println("결과는?");
             if (receivedData.contains("RoomUserList")) {
                 String[] userList = receivedData.split("&");
 
