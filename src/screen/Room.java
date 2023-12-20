@@ -48,7 +48,7 @@ public class Room extends JFrame {
     private JPanel infoGreyPanel;
 
     // 생성자에서 UI 설정
-    public Room(Socket socket, Long roomId) {
+    public Room(Socket socket, Long roomId, Audio audio) {
         this.socket = socket;
         this.audio = audio;
         try {
