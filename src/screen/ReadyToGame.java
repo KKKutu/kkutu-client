@@ -15,6 +15,7 @@ import java.awt.event.MouseEvent;
 import java.io.*;
 import java.net.Socket;
 import java.util.Objects;
+import util.Audio;
 
 import static component.RoundedMenu.createRoundedPanel;
 
@@ -44,14 +45,16 @@ public class ReadyToGame extends JFrame {
 
     private JPanel userListPanel; // 유저 리스트 패널
 
+    // 오디오
+    public Audio audio = new Audio();
 
     // 생성자에서 UI 설정
     public ReadyToGame(Socket socket) {
+        audio.playAudio("lobby");
         this.socket = socket;
         try {
             output = new DataOutputStream(socket.getOutputStream());
             input = new DataInputStream(socket.getInputStream());
-
             // 배경음악 틀기
 //            SwingUtilities.invokeLater(new Runnable() {
 //                @Override
@@ -902,7 +905,7 @@ public class ReadyToGame extends JFrame {
                     dispose();
 
                     // Room 클래스 실행
-                    new Room(socket);
+                    new Room(socket, audio);
 
 
                 } catch (IOException ex) {

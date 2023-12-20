@@ -17,6 +17,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import util.Audio;
 
 public class Room extends JFrame {
 
@@ -34,9 +35,12 @@ public class Room extends JFrame {
     private JPanel roomInformationPanel;
     private JPanel peoplePanel;
 
+    public Audio audio = null;
+
     // 생성자에서 UI 설정
-    public Room(Socket socket) {
+    public Room(Socket socket, Audio audio) {
         this.socket = socket;
+        this.audio = audio;
         try {
             output = new DataOutputStream(socket.getOutputStream());
             input = new DataInputStream(socket.getInputStream());
@@ -126,7 +130,7 @@ public class Room extends JFrame {
                        dispose();
 
                        // Room 클래스 실행
-                       new Game(socket);
+                       new Game(socket, audio);
                    }
                }
             );

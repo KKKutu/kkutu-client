@@ -18,10 +18,12 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.Timer;
+import util.Audio;
 
 public class Game extends JFrame {
 
     private Socket socket;
+    private Audio audio;
     private JLabel countdownLabel;
     private JLabel timerLabel;
     private RoundedWordField inputField;
@@ -50,8 +52,13 @@ public class Game extends JFrame {
     private String[] fiveLengthWordArr = {"아이스크림", "크리스마스", "아메리카노", "오케스트라", "코인노래방"};
     private String[] selectedWordArray; // 선택된 단어를 글자별로 저장하는 배열
 
-    public Game(Socket socket) {
+    public Game(Socket socket, Audio audio) {
         this.socket = socket;
+        this.audio = audio;
+
+        // 로비 음악 끝
+        audio.stopAudio("lobby");
+        audio.closeAudio("lobby");
 
         // 랜덤 단어 선택 및 분리
         selectAndSplitWord();
@@ -222,11 +229,16 @@ public class Game extends JFrame {
 
                         // 단어 라벨 업데이트
                         updateWordLabel(inputText);
+                        audio.playAudio("success");
 
                         // 다음 차례 설정
                         lastWord = inputText.substring(inputText.length() - 1);
                         currentPerson = (currentPerson + 1) % personPanels.length;
                         updatePanelUI();
+                    } else {
+                        // 유효하지 않은 단어에 대한 처리
+                        System.out.println("실패"); // 콘솔에 실패 메시지 출력
+                        audio.playAudio("fail"); // 실패 효과음 재생
                     }
                     // 입력 필드 초기화
                     field.setText("");
@@ -264,7 +276,9 @@ public class Game extends JFrame {
                 updateTimerAppearance(timeLeft);
 
                 if (isReadyStatus) { // 준비 상태
-                    if (timeLeft >= 0) {
+                    if (timeLeft > 0) { // 3 2 1 0
+                        audio.playAudio("gameStart");
+                        audio.playAudio("roundStart");
                         countdownLabel.setText(Integer.toString(timeLeft));
                     } else {
                         isReadyStatus = false;
@@ -273,10 +287,19 @@ public class Game extends JFrame {
                     }
                 } else { // 준비 상태가 아닐 때
                     if (timeLeft >= 0) {
+                        audio.playAudio("gameNormal");
+
+                        if(timeLeft <= 15) {
+                            audio.stopAudio("gameNormal");
+                            audio.closeAudio("gameNormal");
+                            audio.playAudio("gameFast");
+                        }
+
                         countdownLabel.setText(Integer.toString(timeLeft));
                     } else {
                         if (currentRound < roundNum) {
                             startNewRound(); // 새 라운드 시작
+                            audio.stopAudio("gameFast");
                             System.out.println(currentRound + "번째 라운드 종료"); // 라운드 종료 메시지 출력
                             isReadyStatus = true;
                             timeLeft = 4; // 다음 라운드 준비 시간
