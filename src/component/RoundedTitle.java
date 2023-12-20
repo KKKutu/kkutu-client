@@ -7,7 +7,7 @@ import java.awt.RenderingHints;
 import java.awt.geom.Path2D;
 import javax.swing.JPanel;
 
-// 모든 모서리가 둥글다
+// 모든 모서리가 둥근 패널 - 로비 화면에서 각 패널의 타이틀에 사용
 public class RoundedTitle {
 
     // 둥근 모서리 패널 생성 메서드

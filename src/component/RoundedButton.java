@@ -3,12 +3,11 @@ package component;
 import java.awt.Color;
 import java.awt.Graphics;
 import javax.swing.JButton;
-
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.geom.RoundRectangle2D;
 
-// 모서리가 둥근 버튼 (ex. 로그인, 회원가입, 확인 버튼)
+// 모서리가 둥근 버튼 - 로그인, 회원가입 다이얼로그에서 사용
 public class RoundedButton extends JButton {
     private int cornerRadius;
 
