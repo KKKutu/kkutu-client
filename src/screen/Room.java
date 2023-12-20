@@ -74,6 +74,7 @@ public class Room extends JFrame {
     private class UpdateThread extends Thread {
         private volatile boolean isRunning = true;
 
+
         @Override
         public void run() {
             try {
@@ -123,6 +124,11 @@ public class Room extends JFrame {
                     throw new RuntimeException(e);
                 }
             }
+        }
+        public void setStopThread(){
+            System.out.println("스레드 종료시키기");
+            isRunning = false;
+            updateThread.interrupt();
         }
 
         // UI 업데이트 메서드
@@ -307,11 +313,28 @@ public class Room extends JFrame {
                    public void mouseClicked(MouseEvent e) {
                        // TODO : 여기 기능 구현하기
                        System.out.println("방장 : 게임 시작하기");
+
+                       updateThread.setStopThread();
+
                        // 상위 프레임 닫기
                        dispose();
+                       try {
+                           output.writeUTF("ACTION=StartGame&" + roomId);
+                           output.flush();
 
-                       // Room 클래스 실행
-                       new Game(socket, audio);
+                           synchronized (input){
+                               String receivedData = input.readUTF();
+
+                               // Room 클래스 실행
+                               new Game(socket, audio, updateThread, roomId);
+                           }
+
+
+                       }
+                       catch (IOException io){
+                           System.out.println(io.getMessage());
+                       }
+
                    }
                }
             );
