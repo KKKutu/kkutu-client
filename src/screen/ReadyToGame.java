@@ -24,6 +24,8 @@ public class ReadyToGame extends JFrame {
     private Socket socket;
     private DataOutputStream output;
     private DataInputStream input;
+    private UpdateThread updateThread;
+
     private static final Color LINE_COLOR = Color.decode("#DCDCDC");
     private static final Color MENU_PANEL_COLOR = Color.decode("#F7F7F7");
     private static final Color PEOPLE_PANEL_COLOR = Color.decode("#F7F7F7");
@@ -60,68 +62,82 @@ public class ReadyToGame extends JFrame {
 //                }
 //            });
 
-//            enterGame();
+
             // UpdateThread 시작
             setScreen();
-            UpdateThread updateThread = new UpdateThread();
+            updateThread = new UpdateThread();
             updateThread.start();
+
+
         }catch (IOException e){
 
         }
     }
 
-
     // 새로운 스레드 클래스 추가
     private class UpdateThread extends Thread {
-
+        volatile boolean isRunning = true;
+        volatile boolean btn = true;
         @Override
         public void run() {
-            while (!isInterrupted()) {
+            while (!Thread.interrupted() && isRunning) {
                 try {
                     // 서버에 업데이트 요청
                     // UI 업데이트를 Swing 스레드에서 실행
-                    String inputLine = input.readUTF();
-                    if(inputLine.contains("ACTION")) {
-                        System.out.println("Thread :" + inputLine);
-                        // 메시지 분석
-                        String[] messageParts = inputLine.split("&");
-                        String action = messageParts[0].split("=")[1];
+                    if(!isRunning)
+                        break;
 
-                        // 형식 "ACTION=SIGN_UP&USERNAME=newUser&PASSWORD=password123"
-                        switch (action) {
-                            case "UpdateUserList": {
-                                // 접속자 리스트 업데이트
-                                SwingUtilities.invokeLater(() -> updateUI(messageParts));
+                    synchronized (input) {
+                        if (input.available() > 0 && btn) { // 데이터가 도착했는지 확인
+                            String inputLine = input.readUTF();
+                            // 데이터 처리 로직
 
-                                System.out.println("UpdateUserList : " + inputLine);
-                                break;
+                            if (inputLine.contains("ACTION")) {
+                                System.out.println("Thread :" + inputLine);
+                                // 메시지 분석
+                                String[] messageParts = inputLine.split("&");
+                                String action = messageParts[0].split("=")[1];
+
+                                // 형식 "ACTION=SIGN_UP&USERNAME=newUser&PASSWORD=password123"
+                                switch (action) {
+                                    case "UpdateUserList": {
+                                        // 접속자 리스트 업데이트
+                                        SwingUtilities.invokeLater(() -> updateUI(messageParts));
+
+                                        System.out.println("UpdateUserList : " + inputLine);
+                                        break;
+                                    }
+                                    case "UpdateRoomList": {
+                                        // 접속자 리스트 업데이트
+                                        int roomLength = Integer.parseInt(messageParts[1]);
+                                        SwingUtilities.invokeLater(() -> updateRoomList(messageParts, roomLength));
+    //                                updateRoomList(messageParts, roomLength);
+                                        System.out.println("UpdateRoomList : " + inputLine);
+                                        break;
+                                    }
+                                    case "RoomInfo": {
+
+                                        System.out.println("RoomInfo : " + inputLine);
+                                        break;
+                                    }
+                                }
+
                             }
-                            case "UpdateRoomList": {
-                                // 접속자 리스트 업데이트
-                                int roomLength = Integer.parseInt(messageParts[1]);
-                                SwingUtilities.invokeLater(() -> updateRoomList(messageParts, roomLength));
-
-                                System.out.println("UpdateRoomList : " + inputLine);
-                                break;
-                            }
-                            case "CreateRoom": {
-
-                                System.out.println("CreateRoom : " + inputLine);
-                                break;
-                            }
+                            System.out.println("test InputLine : " + inputLine);
+                            // 일정 간격으로 업데이트를 확인하기 위해 스레드 일시 중지
+    //                    Thread.sleep(200);
                         }
-
                     }
-                    System.out.println("test InputLine : " + inputLine);
-                    // 일정 간격으로 업데이트를 확인하기 위해 스레드 일시 중지
-                    Thread.sleep(200); // 5초마다 업데이트 확인 (조절 가능)
-                } catch (IOException | InterruptedException e) {
+                } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
             }
         }
-        public void stopThread() {
-            super.interrupt();
+        public void setStopThread(){
+            System.out.println("스레드 종료시키기");
+            isRunning = false;
+            btn = false;
+            updateThread.interrupt();
         }
 
         // UI 업데이트 메서드
@@ -246,6 +262,39 @@ public class ReadyToGame extends JFrame {
 //                JLabel playRoomLabel = createImageLabel(playRoomImagePath, 0, 0, -1, -1);
 //                playRoomLabel.setBorder(new EmptyBorder(10, 5, 10, 5)); // 상, 좌, 하, 우 여백
 //                rowPanel.add(playRoomLabel);
+
+                rowPanel.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+
+                        System.out.println("Clicked Room ID: " + roomId);
+                        // 상위 프레임 닫기
+                        dispose();
+                        // UpdateThread 스레드 종료
+                        setStopThread();
+
+                        try{
+                            output.writeUTF("ACTION=EnterRoom&");
+                            output.flush();
+                            synchronized (input) {
+
+                                String receivedData = input.readUTF();
+                                String result = receivedData.split("&")[1];
+                                if (result.equals("true"))
+                                    // Room 클래스 실행
+                                    new Room(socket, Long.parseLong(roomId));
+
+                            }
+                        }
+                        catch (IOException io){
+                            System.out.println(io.getMessage());
+                        }
+
+
+
+
+                    }
+                });
 
                 roomListPanel.add(rowPanel);
             }
@@ -606,6 +655,18 @@ public class ReadyToGame extends JFrame {
 //                    playRoomLabel.setBorder(new EmptyBorder(10, 5, 10, 5)); // 상, 좌, 하, 우 여백
 //                    rowPanel.add(playRoomLabel);
 
+                    rowPanel.addMouseListener(new MouseAdapter() {
+                        @Override
+                        public void mouseClicked(MouseEvent e) {
+                            System.out.println("Clicked Room ID: " + roomId);
+                            // 상위 프레임 닫기
+                            dispose();
+
+                            // Room 클래스 실행
+                            new Room(socket, Long.parseLong(roomId));
+
+                        }
+                    });
                     roomListPanel.add(rowPanel);
                 }
 
@@ -891,18 +952,31 @@ public class ReadyToGame extends JFrame {
                 try {
                     System.out.println("updateThread=interrupt");
 
+                    updateThread.setStopThread();
+
                     output.writeUTF("ACTION=CreateRoom&" + selectedRoomTitle  + "&" + selectedPlayerNum  + "&" + selectedRoundNum  + "&"
                             + selectedRoundTime);
                     output.flush();
 
-                    // 다이얼로그 닫기
-                    dialog.dispose();
+                    synchronized (input) {
+                        String receivedData = input.readUTF();
+                        // 데이터 처리 로직
 
-                    // 상위 프레임 닫기
-                    dispose();
+                        if (receivedData.contains("CreateRoom")) {
+                            String roomId = receivedData.split("&")[1];
+                            // 다이얼로그 닫기
+                            dialog.dispose();
 
-                    // Room 클래스 실행
-                    new Room(socket);
+                            // 상위 프레임 닫기
+                            dispose();
+
+                            // Room 클래스 실행
+                            new Room(socket, Long.parseLong(roomId));
+                        }
+                    }
+
+//                    new Room(socket, 0L);
+
 
 
                 } catch (IOException ex) {
