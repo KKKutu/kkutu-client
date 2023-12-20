@@ -5,6 +5,7 @@ import java.awt.Graphics;
 import java.awt.Shape;
 import java.awt.geom.RoundRectangle2D;
 
+// 모서리가 둥근 텍스트 필드
 public class RoundedIdField extends JTextField {
     private static final long serialVersionUID = 1L;
     private Shape shape;

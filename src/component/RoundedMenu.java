@@ -7,7 +7,7 @@ import java.awt.RenderingHints;
 import java.awt.geom.Path2D;
 import javax.swing.JPanel;
 
-// 왼쪽, 오른쪽 위 모서리만 둥글다
+// 왼쪽, 오른쪽 위 모서리만 둥근 패널 - 로비 화면에서 사용
 public class RoundedMenu {
 
     // 둥근 모서리 패널 생성 메서드

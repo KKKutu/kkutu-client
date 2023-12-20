@@ -5,6 +5,7 @@ import java.awt.Shape;
 import java.awt.geom.RoundRectangle2D;
 import javax.swing.JTextField;
 
+// 모서리가 둥근 텍스트 필드 - 게임 화면에서 사용
 public class RoundedWordField extends JTextField {
     private static final long serialVersionUID = 1L;
     private Shape shape;

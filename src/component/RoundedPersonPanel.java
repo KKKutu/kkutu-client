@@ -9,7 +9,7 @@ import java.awt.Stroke;
 import java.awt.geom.Path2D;
 import javax.swing.JPanel;
 
-// 모든 모서리가 둥글다
+// 모든 모서리가 둥근 패널 - 게임 화면에서 사용
 public class RoundedPersonPanel {
 
     // 둥근 모서리 패널 생성 메서드

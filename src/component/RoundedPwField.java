@@ -4,8 +4,8 @@ import java.awt.Graphics;
 import java.awt.Shape;
 import java.awt.geom.RoundRectangle2D;
 import javax.swing.JPasswordField;
-import javax.swing.JTextField;
 
+// 모서리가 둥근 비밀번호 입력 필드 - 회원가입, 로그인에 사용
 public class RoundedPwField extends JPasswordField {
     private static final long serialVersionUID = 1L;
     private Shape shape;
