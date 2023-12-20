@@ -679,6 +679,7 @@ public class ReadyToGame extends JFrame {
             if(receivedData.contains("UserName")){
 
                 String userName = receivedData.split("&")[1];
+                System.out.println("유저이름 : " + userName);
                 int fontSize = 15;
                 JLabel idLabel = createTextLabel(userName, fontSize);
 
@@ -703,20 +704,16 @@ public class ReadyToGame extends JFrame {
     // 프로필 이미지 보여주기
     private void addProfileImg() {
         String imagePath = "../image/profile/1.png";
-        JLabel idLabel = (JLabel) profilePanel.getComponent(profilePanel.getComponentCount()-1); // 마지막에 추가된 컴포넌트(여기서는 idLabel)를 가져옴
-
 
         // 이미지의 x 위치와 y 위치 계산
         ImageIcon tempIcon = loadIcon(imagePath);
         int width = tempIcon.getIconWidth();
         int height = tempIcon.getIconHeight();
         int xPosition = (profilePanel.getWidth() - width) / 2;
-        int yPosition = idLabel.getY() + idLabel.getHeight() + 20; // 이름 라벨 아래 30픽셀
+        int yPosition = 100; // 이름 라벨 아래 30픽셀
 
         JLabel imgLabel = createImageLabel(imagePath, xPosition, yPosition, width, height);
         profilePanel.add(imgLabel);
-
-
     }
 
     // 선을 그리기 위한 패널 추가
