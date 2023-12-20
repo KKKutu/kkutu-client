@@ -91,6 +91,14 @@ public class Game extends JFrame {
         volatile boolean isRunning = true;
         volatile boolean btn = true;
 
+        // 스레드 종료
+        public void setStopThread(){
+            System.out.println("스레드 종료시키기");
+            isRunning = false;
+            btn = false;
+            updateThread.interrupt();
+        }
+
         @Override
         public void run() {
             try {
@@ -125,7 +133,7 @@ public class Game extends JFrame {
 
                                     break;
                                 case "EnterWord":
-
+                                    SwingUtilities.invokeLater(()->changeWord(messageParts));
                                     break;
                             }
 
@@ -157,11 +165,50 @@ public class Game extends JFrame {
             selectedWordArray = selectedWord.split("");
             lastWord = selectedWordArray[selectedWordArray.length-1];
             System.out.println("마지막 단어는? : " + lastWord);
+
             putWordLabel.revalidate();
             putWordLabel.repaint();
 
+            add(putWordLabel);
+
+//            revalidate(); // 레이아웃 갱신
+//            repaint();    // 다시 그리기
+
+        }
+
+        private void changeWord(String[] messageParts){
+            String word = messageParts[1];
+            int prev = Integer.parseInt(messageParts[2]);
+            int curr = Integer.parseInt(messageParts[3]);
+            String isReady = messageParts[4];
+            if(isReady.equals("false"))
+                isReadyStatus = false;
+            else
+                isReadyStatus = true;
+//            removeAll();
+
+            wordLabel.removeAll();
+
+            wordLabel = new JLabel(word, SwingConstants.CENTER);
+            wordLabel.setFont(new Font("Dialog", Font.BOLD, 17));
+            wordLabel.setForeground(Color.WHITE);
+            wordLabel.setBounds(0, 130, WINDOW_WIDTH, 30); // 프레임 전체 너비를 사용하도록 설정
+            wordLabel.setHorizontalAlignment(SwingConstants.CENTER); // 가운데 정렬
             add(wordLabel);
 
+            wordLabel.revalidate();
+            wordLabel.repaint();
+
+            // 현재 차례인 사람의 패널 스타일 변경
+//            ((RoundedPanel)personPanels[prev]).removeAll();
+            ((RoundedPanel)personPanels[prev]).setStyle(Color.decode("#CEFFDB"), Color.decode("#008C25"), 3);
+            ((RoundedPanel)personPanels[prev]).repaint();
+
+            // 다른 사람의 패널은 기본 스타일로
+//            ((RoundedPanel)personPanels[curr]).removeAll();
+            ((RoundedPanel)personPanels[curr]).setStyle(Color.decode("#D8D8D8"), Color.BLACK, 1);
+//            ((RoundedPanel)personPanels[curr]).revalidate();
+            ((RoundedPanel)personPanels[curr]).repaint();
 //            revalidate(); // 레이아웃 갱신
 //            repaint();    // 다시 그리기
 
@@ -370,11 +417,12 @@ public class Game extends JFrame {
 
                         // 다음 차례 설정
                         lastWord = inputText.substring(inputText.length() - 1);
+                        int prevPerson = currentPerson;
                         currentPerson = (currentPerson + 1) % personPanels.length;
-                        updatePanelUI();
+//                        updatePanelUI();
 
                         try {
-                            output.writeUTF("ACTION=EnterWord&" + roomId + "&" + inputText);
+                            output.writeUTF("ACTION=EnterWord&" + roomId + "&" + inputText + "&" + prevPerson + "&" + currentPerson);
                             output.flush();
 
                         }
@@ -454,6 +502,7 @@ public class Game extends JFrame {
                             ((Timer) e.getSource()).stop();
                             System.out.println("===게임 종료===");
                             System.out.println(currentRound + "번째 라운드 종료");
+                            GameOver();
                         }
                     }
                 }
@@ -468,8 +517,12 @@ public class Game extends JFrame {
     // 게임 끝 - 아직은 사용 X
     private void GameOver() {
         System.out.println("게임 끝!");
-        new ReadyToGame(socket);
-        dispose(); // Loading 화면 닫기
+        synchronized (updateThread){
+            dispose(); // Loading 화면 닫기
+            updateThread.setStopThread();
+            new ReadyToGame(socket, updateThread);
+
+        }
     }
 
     // 뽑힌 단어를 보여주는 라벨 생성
