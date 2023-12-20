@@ -68,6 +68,7 @@ public class ReadyToGame extends JFrame {
 
             // UpdateThread 시작
             setScreen();
+
             updateThread = new UpdateThread();
             updateThread.start();
 
@@ -276,25 +277,7 @@ public class ReadyToGame extends JFrame {
                         // UpdateThread 스레드 종료
                         setStopThread();
 
-                        try{
-                            output.writeUTF("ACTION=EnterRoom&");
-                            output.flush();
-                            synchronized (input) {
-
-                                String receivedData = input.readUTF();
-                                String result = receivedData.split("&")[1];
-                                if (result.equals("true"))
-                                    // Room 클래스 실행
-                                    new Room(socket, Long.parseLong(roomId));
-
-                            }
-                        }
-                        catch (IOException io){
-                            System.out.println(io.getMessage());
-                        }
-
-
-
+                        new Room(socket, Long.parseLong(roomId));
 
                     }
                 });
@@ -717,7 +700,8 @@ public class ReadyToGame extends JFrame {
     // 프로필 이미지 보여주기
     private void addProfileImg() {
         String imagePath = "../image/profile/1.png";
-        JLabel idLabel = (JLabel) profilePanel.getComponent(profilePanel.getComponentCount() - 1); // 마지막에 추가된 컴포넌트(여기서는 idLabel)를 가져옴
+        JLabel idLabel = (JLabel) profilePanel.getComponent(profilePanel.getComponentCount()-1); // 마지막에 추가된 컴포넌트(여기서는 idLabel)를 가져옴
+
 
         // 이미지의 x 위치와 y 위치 계산
         ImageIcon tempIcon = loadIcon(imagePath);
@@ -728,6 +712,8 @@ public class ReadyToGame extends JFrame {
 
         JLabel imgLabel = createImageLabel(imagePath, xPosition, yPosition, width, height);
         profilePanel.add(imgLabel);
+
+
     }
 
     // 선을 그리기 위한 패널 추가

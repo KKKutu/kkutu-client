@@ -62,13 +62,13 @@ public class Room extends JFrame {
             updateThread = new UpdateThread();
             updateThread.start();
 
-//            try {
-//                output.writeUTF("ACTION=RoomInfo&" + roomId);
-//                output.flush();
-//            }
-//            catch (IOException e){
-//
-//            }
+            try {
+                output.writeUTF("ACTION=EnterRoom&");
+                output.flush();
+            }
+            catch (IOException e){
+
+            }
         } catch (IOException e){
 
         }
@@ -106,6 +106,10 @@ public class Room extends JFrame {
                                 case "UserList": {
                                     System.out.println("UserList : " + inputLine);
                                     SwingUtilities.invokeLater(() -> updateUserList(messageParts));
+                                    break;
+                                }
+                                case "EnterRoom": {
+                                    System.out.println("EnterRoom : " + inputLine);
                                     break;
                                 }
                             }
