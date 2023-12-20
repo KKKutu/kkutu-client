@@ -3,7 +3,6 @@ package screen;
 import component.RoundedPersonPanel;
 import component.RoundedPersonPanel.RoundedPanel;
 import component.RoundedWordField;
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -20,6 +19,7 @@ import util.Audio;
 
 public class Game extends JFrame {
 
+    // 통신에 필요
     private Socket socket;
     private DataOutputStream output;
     private DataInputStream input;
@@ -31,7 +31,6 @@ public class Game extends JFrame {
     private Audio audio;
     private JLabel countdownLabel;
     private JLabel timerLabel;
-    private RoundedWordField inputField;
     private JLabel chainLabel; // 몇 번 이어갔는지 표시하는 라벨
     private int chainValue = 0; // 현재 몇 번 이어갔는지 값
     private int currentPerson = 0; // 현재 차례인 사람의 인덱스 (0부터 시작)
@@ -42,6 +41,12 @@ public class Game extends JFrame {
     private JLabel wordLabel; // 사용자가 입력한 단어를 보여주는 라벨
 
     private boolean isReadyStatus = true;
+
+    // 패널
+    private JPanel frogPanel; // 개구리 패널
+    private JPanel chainPanel; // 한 라운드에 얼마나 이어갔는지 보여주는 패널
+    // private JPanel peoplePanel; // 사람들 패널
+    private JPanel inputPanel; // 사용자가 단어를 입력할 수 있는 패널
 
     // TODO : 소켓으로 정보 갖고오기
     private int roundNum = 3; // 몇 번의 라운드를 할 지
@@ -212,6 +217,7 @@ public class Game extends JFrame {
 //            revalidate(); // 레이아웃 갱신
 //            repaint();    // 다시 그리기
 
+
         }
     }
 
@@ -231,8 +237,10 @@ public class Game extends JFrame {
     public void setScreen() {
         setWindow(); // 화면 기본 구성
         addPanels(); // 패널들 부착
+        addFrogPanelContents();
+        addChainPanelContents();
+        addInputPanelContents();
         setVisible(true); // 해당 프레임 보이게
-        inputField.requestFocusInWindow(); // 포커스
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // 화면 닫으면 프로그램 종료
     }
 
@@ -248,24 +256,19 @@ public class Game extends JFrame {
     // 패널들 부착
     private void addPanels() {
 
-        // 뽑힌 단어 표시
-        JLabel wordLabel = createWord();
-        add(wordLabel);
-        add(showInputText()); // 사용자가 입력한 단어 보여주기
-        add(createFrog()); // 개구리 이미지
+        // 개구리 이미지 & 뽑힌 단어 표시 & 사용자가 입력한 단어 표시
+        frogPanel = createPanel(306, 59, 388, 119);
 
-        chainLabel = createChainLabel(); // 점수 라벨 생성
-        add(chainLabel); // 체인 라벨 추가
+        // 체인 이미지 & 체인 표시
+        chainPanel = createPanel(782, 73, 100, 100);
 
-        add(createChain()); // 체인 이미지
+        // 사용자가 단어 입력
+        inputPanel = createPanel(38, 500, 924, 37);
 
-        inputField = createInputField();
-        add(inputField);// 입력 필드
-
+        // 타이머
         add(createCountdownLabel()); // 카운트 다운 텍스트 라벨
         timerLabel = createTimerImg(); // 타이머 이미지 라벨 생성
         add(timerLabel); // 타이머 이미지 라벨 추가
-
         add(createTimerImg()); // 타이머 이미지
 
         try{
@@ -279,24 +282,40 @@ public class Game extends JFrame {
                 add(personPanel(length));
             }
 
-
         }
         catch (IOException e){
             System.out.println(e.getMessage());
         }
 
-
         add(createBackground()); // 배경 (마지막에 넣기)
     }
 
+    // 개구리 패널
+    private void addFrogPanelContents() {
+        frogPanel.add(showInputText()); // 사용자가 입력한 단어 보여주기
+        frogPanel.add(createFrog()); // 개구리 이미지 부착
+        frogPanel.add(createWord()); // 뽑힌 단어 보여주기
+    }
+
+    // 체인 패널
+    private void addChainPanelContents() {
+        chainPanel.add(createChainLabel()); // 한 라운드에 몇 번 돌았는지 보여주기
+        chainPanel.add(createChain()); // 체인 이미지 부착
+    }
+
+    // 사용자가 단어 입력하는 패널
+    private void addInputPanelContents() {
+        inputPanel.add(createInputField());
+    }
 
     // 체인 라벨 생성
     private JLabel createChainLabel() {
-        JLabel label = new JLabel("0", SwingConstants.CENTER);
-        label.setFont(new Font("Dialog", Font.BOLD, 30));
-        label.setForeground(Color.WHITE);
-        label.setBounds(808, 115, 50, 50); // 위치와 크기 설정
-        return label;
+        chainLabel = new JLabel("0", SwingConstants.CENTER);
+        chainLabel.setFont(new Font("Dialog", Font.BOLD, 30));
+        chainLabel.setForeground(Color.WHITE);
+        chainLabel.setBackground(Color.BLUE);
+        chainLabel.setBounds(26, 42, 50, 50); // 위치와 크기 설정
+        return chainLabel;
     }
 
     // 사용자가 입력한 단어를 보여주는 라벨
@@ -304,7 +323,7 @@ public class Game extends JFrame {
         wordLabel = new JLabel("", SwingConstants.CENTER);
         wordLabel.setFont(new Font("Dialog", Font.BOLD, 17));
         wordLabel.setForeground(Color.WHITE);
-        wordLabel.setBounds(0, 130, WINDOW_WIDTH, 30); // 프레임 전체 너비를 사용하도록 설정
+        wordLabel.setBounds(0, 75, WINDOW_WIDTH, 30); // 프레임 전체 너비를 사용하도록 설정
         wordLabel.setHorizontalAlignment(SwingConstants.CENTER); // 가운데 정렬
         return wordLabel;
     }
@@ -392,7 +411,7 @@ public class Game extends JFrame {
     private RoundedWordField createInputField() {
 
         field = new RoundedWordField(1, 10);
-        field.setBounds(38, 500, 924, 37);
+        field.setBounds(0, 0, 924, 37);
         field.setBorder(BorderFactory.createLineBorder(Color.decode("#A0A0A0"), 2));
         field.setFont(new Font("Dialog", Font.BOLD, 15));
 
@@ -530,8 +549,7 @@ public class Game extends JFrame {
         putWordLabel = new JLabel(selectedWord, SwingConstants.CENTER);
         putWordLabel.setFont(new Font("Dialog", Font.BOLD, 20));
         putWordLabel.setForeground(Color.WHITE);
-        putWordLabel.setBounds(448, 68, 100, 30);
-
+        putWordLabel.setBounds(142, 9, 100, 30);
         return putWordLabel;
     }
 
@@ -585,12 +603,12 @@ public class Game extends JFrame {
 
     // 개구리
     public JLabel createFrog() {
-        return createImageLabel("../image/game/frog.png", 306, 59, 388, 119);
+        return createImageLabel("../image/game/frog.png", 0, 0, 388, 119);
     }
 
     // 체인
     public JLabel createChain() {
-        return createImageLabel("../image/game/chain.png", 782, 73, 100, 100);
+        return createImageLabel("../image/game/chain.png", 0, 0, 100, 100);
     }
 
     // 이미지 아이콘 로딩
@@ -619,6 +637,17 @@ public class Game extends JFrame {
         // 위치와 크기를 동시에 설정
         countdownLabel.setBounds(151, 107, 50, 50);
         return countdownLabel;
+    }
+
+    // 각각 패널 추가
+    private JPanel createPanel(int x, int y, int width, int height) {
+        JPanel panel = new JPanel(); // 패널 생성
+        panel.setLayout(null); // 컴포넌트들의 절대 위치 설정을 위해 레이아웃 매니저 비활성화
+        panel.setBounds(x, y, width, height); // x 위치, y 위치, 넓이, 길이
+        panel.setBackground(new Color(0, 0, 0, 0)); // 패널의 배경색을 투명하게 설정
+        panel.setOpaque(false);
+        add(panel); // 부착
+        return panel;
     }
 
 }
