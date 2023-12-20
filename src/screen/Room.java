@@ -18,12 +18,17 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import util.Audio;
+import javax.swing.*;
 
 public class Room extends JFrame {
 
     private Socket socket;
     private DataOutputStream output;
     private DataInputStream input;
+
+    private UpdateThread updateThread;
+
+    private Long roomId;
     private static final Color MENU_PANEL_COLOR = Color.decode("#F7F7F7");
     private static final Color LINE_COLOR = Color.decode("#E0DEDE");
     private static final Color ROOM_INFORMATION_PANEL_COLOR = Color.decode("#F7F7F7");
@@ -38,19 +43,184 @@ public class Room extends JFrame {
     public Audio audio = null;
 
     // 생성자에서 UI 설정
-    public Room(Socket socket, Audio audio) {
+    // public Room(Socket socket, Audio audio) {
+
+    private JPanel infoGreyPanel;
+
+    // 생성자에서 UI 설정
+    public Room(Socket socket, Long roomId) {
         this.socket = socket;
         this.audio = audio;
         try {
+            this.roomId = roomId;
             output = new DataOutputStream(socket.getOutputStream());
             input = new DataInputStream(socket.getInputStream());
+            System.out.println("룸 생성");
             setScreen();
+
+
+            updateThread = new UpdateThread();
+            updateThread.start();
+
+//            try {
+//                output.writeUTF("ACTION=RoomInfo&" + roomId);
+//                output.flush();
+//            }
+//            catch (IOException e){
+//
+//            }
         } catch (IOException e){
 
         }
 
     }
 
+    private class UpdateThread extends Thread {
+        private volatile boolean isRunning = true;
+
+        @Override
+        public void run() {
+            while (isRunning) {
+                try {
+                    // 서버에 업데이트 요청
+                    // UI 업데이트를 Swing 스레드에서 실행
+                    if (input.available() > 0) {
+                        String inputLine = input.readUTF();
+                        if (inputLine.contains("ACTION")) {
+                            System.out.println("Thread Room :" + inputLine);
+                            // 메시지 분석
+                            String[] messageParts = inputLine.split("&");
+                            String action = messageParts[0].split("=")[1];
+
+                            // 형식 "ACTION=SIGN_UP&USERNAME=newUser&PASSWORD=password123"
+                            switch (action) {
+                                case "RoomInfo": {
+
+                                    System.out.println("RoomInfo : " + inputLine);
+
+//                                output.writeUTF("ACTION=RoomInfo&" + roomId);
+//                                output.flush();
+                                    SwingUtilities.invokeLater(() -> updateRoomInfo(messageParts));
+                                    break;
+                                }
+                                case "UserList": {
+                                    System.out.println("UserList : " + inputLine);
+                                    SwingUtilities.invokeLater(() -> updateUserList(messageParts));
+                                    break;
+                                }
+                            }
+
+                        }
+                        System.out.println("test Room InputLine : " + inputLine);
+                    }
+
+                    // 일정 간격으로 업데이트를 확인하기 위해 스레드 일시 중지
+//                    Thread.sleep(200); // 5초마다 업데이트 확인 (조절 가능)
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+
+        // UI 업데이트 메서드
+        private void updateRoomInfo(String[] result) {
+
+            // 둥근 회색 패널 추가
+            Color greyPanelColor = Color.decode("#DDDDDD");
+            int greyPanelWidth = 980;
+            int greyPanelHeight = 40;
+            int greyPanelX = 10;
+            int greyPanelY = 10;
+
+            infoGreyPanel.removeAll();
+            roomInformationPanel.removeAll();
+
+            infoGreyPanel = RoundedTitle.createRoundedPanel(greyPanelX, greyPanelY, greyPanelWidth, greyPanelHeight, greyPanelColor, 15);
+            infoGreyPanel.setLayout(null);
+
+            String title = result[2];
+            // 방 제목
+            JLabel roomTitleTextLabel = new JLabel("[" + title + "]");
+            roomTitleTextLabel.setBounds(12, 8, 200, 24); // 위치와 크기 설정 (이미지 옆)
+            roomTitleTextLabel.setForeground(Color.BLACK);
+            roomTitleTextLabel.setFont(new Font("Dialog", Font.PLAIN, 15));
+
+            String info = result[3];
+            // 기타 정보
+            JLabel etcTextLabel = new JLabel("한국어    끝말잇기    " + info);
+            etcTextLabel.setBounds(620, 8, 400, 24); // 위치와 크기 설정
+            etcTextLabel.setForeground(Color.BLACK);
+            etcTextLabel.setFont(new Font("Dialog", Font.PLAIN, 15));
+
+            infoGreyPanel.add(roomTitleTextLabel);
+            infoGreyPanel.add(etcTextLabel);
+
+            roomInformationPanel.revalidate();
+            roomInformationPanel.repaint();
+
+            infoGreyPanel.revalidate();
+            infoGreyPanel.repaint();
+
+
+            roomInformationPanel.add(infoGreyPanel);
+        }
+
+        private void updateUserList(String[] userList){
+
+
+
+            for(int i=1; i<userList.length; i++){
+                String[] userInfo = userList[i].split(",");
+                String name = userInfo[1];
+
+
+
+                if(i==1)
+                    addPersonPanel2(name, 1, 0);
+                else
+                    addPersonPanel2(name, 2, 0);
+            }
+
+
+        }
+
+        private void addPersonPanel2(String id, int isManager, int position) {
+            int greyPanelX = 23 + (220 + 20) * position;
+            int greyPanelY = 10;
+            JPanel personPanel = createPersonPanel(greyPanelX, greyPanelY, id, isManager);
+            peoplePanel.add(personPanel);
+        }
+
+        private JPanel createPersonPanel2(int x, int y, String id, int isManager) {
+            Color greyPanelColor = Color.decode("#E4E4E4");
+            int greyPanelWidth = 220;
+            int greyPanelHeight = 170;
+            JPanel personPanel = RoundedTitle.createRoundedPanel(x, y, greyPanelWidth, greyPanelHeight, greyPanelColor, 15);
+            personPanel.setLayout(null);
+
+            // 이미지 레이블 추가
+            JLabel imageLabel = createImageLabel("../image/profile/1.png", 20, 25, 80, 67);
+            personPanel.add(imageLabel);
+
+            // 텍스트 레이블 추가
+            boolean isLeader = isManager == 1;
+            JLabel textLabel = new JLabel(isLeader ? "방장" : "준비");
+            textLabel.setForeground(isLeader ? Color.RED : Color.BLUE);
+            textLabel.setFont(new Font("Dialog", Font.BOLD, 20));
+            textLabel.setBounds(160, 20, 40, 24);
+            personPanel.add(textLabel);
+
+            // ID 레이블 추가
+            JLabel idLabel = new JLabel(id);
+            idLabel.setForeground(Color.BLACK);
+            idLabel.setFont(new Font("Dialog", Font.PLAIN, 18));
+            idLabel.setBounds(25, 127, 100, 24);
+            personPanel.add(idLabel);
+
+            return personPanel;
+        }
+
+    }
     // 화면 기본 구성
     private void setWindow() {
         setTitle("Room");
@@ -180,14 +350,15 @@ public class Room extends JFrame {
         int greyPanelHeight = 40;
         int greyPanelX = 10;
         int greyPanelY = 10;
-        JPanel greyPanel = RoundedTitle.createRoundedPanel(greyPanelX, greyPanelY, greyPanelWidth, greyPanelHeight, greyPanelColor, 15);
-        greyPanel.setLayout(null);
+        infoGreyPanel = RoundedTitle.createRoundedPanel(greyPanelX, greyPanelY, greyPanelWidth, greyPanelHeight, greyPanelColor, 15);
+        infoGreyPanel.setLayout(null);
 
         try {
-            output.writeUTF("ACTION=RoomInfo&0");
+            output.writeUTF("ACTION=RoomInfo&" + roomId);
             output.flush();
 
             String receivedData = input.readUTF();
+            System.out.println("roominfo 입니당" + receivedData);
             if (receivedData.contains("RoomInfo")) {
                 String[] result = receivedData.split("&");
 
@@ -205,24 +376,48 @@ public class Room extends JFrame {
                 etcTextLabel.setForeground(Color.BLACK);
                 etcTextLabel.setFont(new Font("Dialog", Font.PLAIN, 15));
 
-                greyPanel.add(roomTitleTextLabel);
-                greyPanel.add(etcTextLabel);
-                roomInformationPanel.add(greyPanel);
+                infoGreyPanel.add(roomTitleTextLabel);
+                infoGreyPanel.add(etcTextLabel);
+                roomInformationPanel.add(infoGreyPanel);
+            }
+
+        } catch (IOException io) {
+            System.out.println(io.getMessage());
+        }
+
+
+    }
+
+    // 사람들 패널
+    private void addPeople() {
+        try {
+            output.writeUTF("ACTION=RoomUserList&" + roomId);
+            output.flush();
+            System.out.println("UserList를 요청했어용");
+            String receivedData = input.readUTF();
+
+            if (receivedData.contains("RoomUserList")) {
+                String[] userList = receivedData.split("&");
+
+                for(int i=1; i<userList.length; i++){
+                    String[] userInfo = userList[i].split(",");
+                    String name = userInfo[1];
+                    if(i==1)
+                        addPersonPanel(name, 1, 0);
+                    else
+                        addPersonPanel(name, 2, i-1);
+                }
             }
 
         } catch (IOException io){
             System.out.println(io.getMessage());
         }
 
-    }
-
-    // 사람들 패널
-    private void addPeople() {
         // 사람들 추가
-        addPersonPanel("가자미", 1, 0);    // 1: 방장
-        addPersonPanel("가자미미", 2, 1);  // 2: 참가자
-        addPersonPanel("가보자고", 2, 2);  // 2: 참가자
-        addPersonPanel("네프끝내자", 2, 3); // 2: 참가자
+//        addPersonPanel("가자미", 1, 0);    // 1: 방장
+//        addPersonPanel("가자미미", 2, 1);  // 2: 참가자
+//        addPersonPanel("가보자고", 2, 2);  // 2: 참가자
+//        addPersonPanel("네프끝내자", 2, 3); // 2: 참가자
     }
 
     private void addPersonPanel(String id, int isManager, int position) {
