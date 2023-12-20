@@ -275,9 +275,12 @@ public class ReadyToGame extends JFrame {
                         // 상위 프레임 닫기
                         dispose();
                         // UpdateThread 스레드 종료
-                        setStopThread();
+                        synchronized (updateThread){
+                            updateThread.setStopThread();
+                        }
 
-                        new Room(socket, Long.parseLong(roomId), audio);
+
+                        new Room(socket, Long.parseLong(roomId), audio, updateThread);
 
                     }
                 });
@@ -649,7 +652,7 @@ public class ReadyToGame extends JFrame {
                             dispose();
 
                             // Room 클래스 실행
-                            new Room(socket, Long.parseLong(roomId), audio);
+                            new Room(socket, Long.parseLong(roomId), audio, updateThread);
 
                         }
                     });
@@ -960,7 +963,7 @@ public class ReadyToGame extends JFrame {
                             dispose();
 
                             // Room 클래스 실행
-                            new Room(socket, Long.parseLong(roomId), audio);
+                            new Room(socket, Long.parseLong(roomId), audio, updateThread);
                         }
                     }
 
