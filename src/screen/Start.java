@@ -38,7 +38,9 @@ public class Start extends JFrame {
             output = new DataOutputStream(socket.getOutputStream()); // 출력 스트림 생성
             input = new DataInputStream(socket.getInputStream()); // 입력 스트림 생성
             output.writeUTF("접속 시도"); // 서버에 메시지 전송
+
             setScreen(); // UI 설정
+
             output.flush(); // 출력 스트림의 데이터 모두 전송 - 데이터 전송 보장
         } catch (IOException e) { // I/O 에러 예외 처리
             e.printStackTrace();
@@ -152,8 +154,8 @@ public class Start extends JFrame {
                 System.out.println("ID: " + id + ", Password: " + pw); // 콘솔에 출력
 
                 try {
-                    output.writeUTF("ACTION=SignIn&USERNAME="+id+"&PASSWORD="+pw);
-                    output.flush();
+                    output.writeUTF("ACTION=SignIn&USERNAME="+id+"&PASSWORD="+pw); // 서버에 메시지 전송
+                    output.flush(); // 출력 스트림의 데이터 모두 전송 - 데이터 전송 보장
 
                     String signUpRes = input.readUTF();
 
@@ -218,8 +220,9 @@ public class Start extends JFrame {
                 String id = inputId.getText(); // 사용자로부터 입력받은 id 값 가져오기
                 System.out.println("ID: " + id); // 콘솔에 출력
                 try {
-                    output.writeUTF("ACTION=FindName&USERNAME="+id);
-                    output.flush();
+                    output.writeUTF("ACTION=FindName&USERNAME="+id); // 서버에 메시지 전송
+                    output.flush(); // 출력 스트림의 데이터 모두 전송 - 데이터 전송 보장
+
                     String receivedData = input.readUTF();
                     String result = receivedData.split("&")[1].split("=")[1];
 
@@ -267,8 +270,8 @@ public class Start extends JFrame {
                 String pw = new String(inputPw.getPassword()); // 사용자로부터 입력받은 pw 값 가져오기
                 System.out.println("ID: " + id + ", Password: " + pw); // 콘솔에 출력
                 try {
-                    output.writeUTF("ACTION=SignUp&USERNAME="+id+"&PASSWORD="+pw);
-                    output.flush();
+                    output.writeUTF("ACTION=SignUp&USERNAME="+id+"&PASSWORD="+pw); // 서버에 메시지 전송
+                    output.flush(); // 출력 스트림의 데이터 모두 전송 - 데이터 전송 보장
 
                     String signUpRes = input.readUTF();
 
