@@ -14,13 +14,8 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Objects;
-import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.SwingConstants;
-import javax.swing.Timer;
+import javax.swing.*;
+
 import util.Audio;
 
 public class Game extends JFrame {
@@ -28,6 +23,10 @@ public class Game extends JFrame {
     private Socket socket;
     private DataOutputStream output;
     private DataInputStream input;
+
+    private JLabel putWordLabel;
+    private RoundedWordField field;
+    private UpdateThread updateThread;
     private Long roomId;
     private Audio audio;
     private JLabel countdownLabel;
@@ -67,29 +66,118 @@ public class Game extends JFrame {
         try {
             output = new DataOutputStream(socket.getOutputStream());
             input = new DataInputStream(socket.getInputStream());
+
+            // 로비 음악 끝
+            audio.stopAudio("lobby");
+            audio.closeAudio("lobby");
+
+            // 랜덤 단어 선택 및 분리
+            selectAndSplitWord();
+
+            setScreen();
+            startCountdown(countdownLabel);
+
+            updateThread = new UpdateThread();
+            updateThread.start();
         }
         catch (IOException e){
             System.out.println(e.getMessage());
         }
 
-        // 로비 음악 끝
-        audio.stopAudio("lobby");
-        audio.closeAudio("lobby");
+    }
 
-        // 랜덤 단어 선택 및 분리
-        selectAndSplitWord();
+    // 새로운 스레드 클래스 추가
+    private class UpdateThread extends Thread {
+        volatile boolean isRunning = true;
+        volatile boolean btn = true;
 
-        setScreen();
-        startCountdown(countdownLabel);
+        @Override
+        public void run() {
+            try {
+                output.writeUTF("ACTION=UpdateUI&" + roomId);
+                output.flush();
+            }
+            catch (IOException e){
+
+            }
+            while (!Thread.interrupted() && isRunning) {
+                try {
+                    // 서버에 업데이트 요청
+                    // UI 업데이트를 Swing 스레드에서 실행
+                    if (!isRunning)
+                        break;
+
+                    if (input.available() > 0 && btn) { // 데이터가 도착했는지 확인
+                        String inputLine = input.readUTF();
+                        // 데이터 처리 로직
+
+                        if (inputLine.contains("ACTION")) {
+                            System.out.println("Games :" + inputLine);
+                            // 메시지 분석
+                            String[] messageParts = inputLine.split("&");
+                            String action = messageParts[0].split("=")[1];
+
+                            // 형식 "ACTION=SIGN_UP&USERNAME=newUser&PASSWORD=password123"
+                            switch (action) {
+                                case "UpdateUI":
+
+                                    SwingUtilities.invokeLater(()->updateUI(messageParts));
+
+                                    break;
+                                case "EnterWord":
+
+                                    break;
+                            }
+
+
+                            System.out.println("test Games InputLine : " + inputLine);
+                            // 일정 간격으로 업데이트를 확인하기 위해 스레드 일시 중지
+                            //                    Thread.sleep(200);
+                        }
+
+                    }
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+
+        private void updateUI(String[] messageParts){
+            selectedWord = messageParts[1];
+//            removeAll();
+
+            putWordLabel.removeAll();
+
+
+            putWordLabel = new JLabel(selectedWord, SwingConstants.CENTER);
+            putWordLabel.setFont(new Font("Dialog", Font.BOLD, 20));
+            putWordLabel.setForeground(Color.WHITE);
+            putWordLabel.setBounds(448, 68, 100, 30);
+
+            selectedWordArray = selectedWord.split("");
+            lastWord = selectedWordArray[selectedWordArray.length-1];
+            System.out.println("마지막 단어는? : " + lastWord);
+            putWordLabel.revalidate();
+            putWordLabel.repaint();
+
+            add(wordLabel);
+
+//            revalidate(); // 레이아웃 갱신
+//            repaint();    // 다시 그리기
+
+        }
     }
 
     private void selectAndSplitWord() {
-        String[] wordArr = roundNum == 3 ? threeLengthWordArr : fiveLengthWordArr;
+
+        String[] wordArr =  threeLengthWordArr;
         selectedWord = wordArr[(int) (Math.random() * wordArr.length)];
+
         System.out.println("뽑힌 단어는? " + selectedWord);
 
         selectedWordArray = selectedWord.split("");
         lastWord = selectedWordArray[0];
+
     }
 
     // UI 설정
@@ -137,10 +225,14 @@ public class Game extends JFrame {
             output.writeUTF("ACTION=InGameUserLength&" + roomId);
             output.flush();
 
-            String receivedData = input.readUTF();
-            int length = Integer.parseInt(receivedData.split("&")[1]);
-            // 사용자 패널 추가
-            add(personPanel(length));
+            synchronized (input){
+                String receivedData = input.readUTF();
+                int length = Integer.parseInt(receivedData.split("&")[1]);
+                // 사용자 패널 추가
+                add(personPanel(length));
+            }
+
+
         }
         catch (IOException e){
             System.out.println(e.getMessage());
@@ -184,43 +276,47 @@ public class Game extends JFrame {
             output.writeUTF("ACTION=InGameUserList&" + roomId);
             output.flush();
 
-            String receivedData = input.readUTF();
-            String[] users = receivedData.split("&");
+            synchronized (input) {
 
-            for (int i = 1; i < users.length; i++) {
-                String name = users[i].split(",")[1];
-                // 둥근 모서리 패널 생성
-                JPanel person = RoundedPersonPanel.createRoundedPanel(38 + (i-1) * (162 + 34), 0, 162, 223, Color.decode("#D8D8D8"), 10);
-                person.setLayout(null);
 
-                // 이미지 라벨의 위치 계산
-                int imageLabelSize = 150;
-                int imageLabelX = (person.getWidth() - imageLabelSize) / 2;
-                int imageLabelY = (person.getHeight() - imageLabelSize) / 2 - 40; // 약간 위쪽으로 조정
+                String receivedData = input.readUTF();
+                String[] users = receivedData.split("&");
 
-                // 이미지 라벨 추가
-                JLabel imageLabel = createImageLabel("../image/profile/1.png", imageLabelX, imageLabelY, imageLabelSize, imageLabelSize);
-                person.add(imageLabel);
+                for (int i = 1; i < users.length; i++) {
+                    String name = users[i].split(",")[1];
+                    // 둥근 모서리 패널 생성
+                    JPanel person = RoundedPersonPanel.createRoundedPanel(38 + (i - 1) * (162 + 34), 0, 162, 223, Color.decode("#D8D8D8"), 10);
+                    person.setLayout(null);
 
-                // ID 라벨 추가
-                JLabel idLabel = new JLabel(name, SwingConstants.CENTER);
-                idLabel.setFont(new Font("Dialog", Font.BOLD, 15));
-                idLabel.setForeground(Color.BLACK);
-                int idLabelWidth = 100;
-                int idLabelX = (person.getWidth() - idLabelWidth) / 2;
-                idLabel.setBounds(idLabelX, 132, idLabelWidth, 20);
-                person.add(idLabel);
+                    // 이미지 라벨의 위치 계산
+                    int imageLabelSize = 150;
+                    int imageLabelX = (person.getWidth() - imageLabelSize) / 2;
+                    int imageLabelY = (person.getHeight() - imageLabelSize) / 2 - 40; // 약간 위쪽으로 조정
 
-                // 점수 라벨 추가
-                JLabel scoreLabel = new JLabel("00000");
-                scoreLabel.setFont(new Font("Dialog", Font.BOLD, 40));
-                scoreLabel.setForeground(Color.BLACK);
-                scoreLabel.setBounds(16, 161, 162, 40);
-                person.add(scoreLabel);
+                    // 이미지 라벨 추가
+                    JLabel imageLabel = createImageLabel("../image/profile/1.png", imageLabelX, imageLabelY, imageLabelSize, imageLabelSize);
+                    person.add(imageLabel);
 
-                panel.add(person); // 생성된 패널을 메인 패널에 추가
-                personPanels[i-1] = person; // 여기에 추가: 패널을 배열에 저장
-                scoreLabels[i-1] = scoreLabel; // 점수 라벨을 배열에 저장
+                    // ID 라벨 추가
+                    JLabel idLabel = new JLabel(name, SwingConstants.CENTER);
+                    idLabel.setFont(new Font("Dialog", Font.BOLD, 15));
+                    idLabel.setForeground(Color.BLACK);
+                    int idLabelWidth = 100;
+                    int idLabelX = (person.getWidth() - idLabelWidth) / 2;
+                    idLabel.setBounds(idLabelX, 132, idLabelWidth, 20);
+                    person.add(idLabel);
+
+                    // 점수 라벨 추가
+                    JLabel scoreLabel = new JLabel("00000");
+                    scoreLabel.setFont(new Font("Dialog", Font.BOLD, 40));
+                    scoreLabel.setForeground(Color.BLACK);
+                    scoreLabel.setBounds(16, 161, 162, 40);
+                    person.add(scoreLabel);
+
+                    panel.add(person); // 생성된 패널을 메인 패널에 추가
+                    personPanels[i - 1] = person; // 여기에 추가: 패널을 배열에 저장
+                    scoreLabels[i - 1] = scoreLabel; // 점수 라벨을 배열에 저장
+                }
             }
 
 
@@ -247,7 +343,8 @@ public class Game extends JFrame {
 
     // 입력 필드
     private RoundedWordField createInputField() {
-        RoundedWordField field = new RoundedWordField(1, 10);
+
+        field = new RoundedWordField(1, 10);
         field.setBounds(38, 500, 924, 37);
         field.setBorder(BorderFactory.createLineBorder(Color.decode("#A0A0A0"), 2));
         field.setFont(new Font("Dialog", Font.BOLD, 15));
@@ -275,6 +372,16 @@ public class Game extends JFrame {
                         lastWord = inputText.substring(inputText.length() - 1);
                         currentPerson = (currentPerson + 1) % personPanels.length;
                         updatePanelUI();
+
+                        try {
+                            output.writeUTF("ACTION=EnterWord&" + roomId + "&" + inputText);
+                            output.flush();
+
+                        }
+                        catch (IOException ee){
+                            System.out.println(ee.getMessage());
+                        }
+
                     } else {
                         // 유효하지 않은 단어에 대한 처리
                         System.out.println("실패"); // 콘솔에 실패 메시지 출력
@@ -361,17 +468,18 @@ public class Game extends JFrame {
     // 게임 끝 - 아직은 사용 X
     private void GameOver() {
         System.out.println("게임 끝!");
-//        new ReadyToGame(socket);
-//        dispose(); // Loading 화면 닫기
+        new ReadyToGame(socket);
+        dispose(); // Loading 화면 닫기
     }
 
     // 뽑힌 단어를 보여주는 라벨 생성
     private JLabel createWord() {
-        JLabel wordLabel = new JLabel(selectedWord, SwingConstants.CENTER);
-        wordLabel.setFont(new Font("Dialog", Font.BOLD, 20));
-        wordLabel.setForeground(Color.WHITE);
-        wordLabel.setBounds(448, 68, 100, 30);
-        return wordLabel;
+        putWordLabel = new JLabel(selectedWord, SwingConstants.CENTER);
+        putWordLabel.setFont(new Font("Dialog", Font.BOLD, 20));
+        putWordLabel.setForeground(Color.WHITE);
+        putWordLabel.setBounds(448, 68, 100, 30);
+
+        return putWordLabel;
     }
 
     // 라운드 시작 시 호출되는 메서드

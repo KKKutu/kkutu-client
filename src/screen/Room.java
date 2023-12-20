@@ -73,6 +73,7 @@ public class Room extends JFrame {
 
     private class UpdateThread extends Thread {
         private volatile boolean isRunning = true;
+        private volatile boolean goGame = true;
 
 
         @Override
@@ -84,8 +85,11 @@ public class Room extends JFrame {
             catch (IOException e){
 
             }
-            while (isRunning) {
+            while (!Thread.interrupted() && isRunning) {
                 try {
+
+                    if(!isRunning)
+                        break;
                     // 서버에 업데이트 요청
                     // UI 업데이트를 Swing 스레드에서 실행
                     if (input.available() > 0) {
@@ -112,6 +116,14 @@ public class Room extends JFrame {
                                     SwingUtilities.invokeLater(() -> updateUserList(messageParts));
                                     break;
                                 }
+                                case "StartGame": {
+                                    // UpdateThread 스레드 종료
+
+                                    SwingUtilities.invokeLater(this::goToGame);
+
+
+                                    break;
+                                }
                             }
 
                         }
@@ -131,6 +143,14 @@ public class Room extends JFrame {
             updateThread.interrupt();
         }
 
+        private void goToGame(){
+            dispose();
+            synchronized (updateThread){
+                updateThread.setStopThread();
+                new Game(socket, audio, updateThread, roomId);
+            }
+
+        }
         // UI 업데이트 메서드
         private void updateRoomInfo(String[] result) {
 
